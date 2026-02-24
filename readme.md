@@ -1,4 +1,4 @@
-AKTIVASI VIRTUAL ENV (venv)
+# Back-end Setup
 
 bikin folder `venv/:
 
@@ -52,3 +52,5 @@ di folder backend:
 ```
 uvicorn main:app --reload --port 8000
 ```
+
+# Front-end Setup
