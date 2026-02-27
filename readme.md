@@ -9,7 +9,7 @@ untuk siapa, masalah apa yang diselesaikan.
 |------|-----|-------|
 | Achmad Bayhaqi | 10231001 | Lead Backend |
 | Indah Nur Fortuna | 10231044 | Lead Frontend |
-| Alfiani Dwiyuniarti | 10231010 | Lead Container |
+| Alfiani Dwiyuniarti | 10231010 | Lead DevOps |
 | Zahwa Hanna Dwi Putri | 10231092 | Lead CI/CD & Deploy |
 | Nilam Ayu NandaStari Romdoni | 10231070 | Lead QA & Docs |
 
