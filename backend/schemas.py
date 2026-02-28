@@ -59,13 +59,34 @@ class ItemStats(BaseModel):
     most_expensive: Optional[ItemSummary] = None
     cheapest: Optional[ItemSummary] = None
 
-
-
 class UserCreate(BaseModel):
-    """Schema untuk registrasi user baru."""
-    email: str = Field(..., examples=["user@student.itk.ac.id"])
-    name: str = Field(..., min_length=2, max_length=100, examples=["Aidil Saputra"])
-    password: str = Field(..., min_length=8, examples=["password123"])
+    email: EmailStr = Field(
+        ...,
+        examples=["user@student.itk.ac.id"],
+        description="Email valid dengan format yang benar",
+    )
+    name: str = Field(
+        ...,
+        min_length=2,
+        max_length=100,
+        examples=["Aidil Saputra"],
+    )
+    password: str = Field(
+        ...,
+        min_length=8,
+        examples=["Password123"],
+        description="Minimal 8 karakter, mengandung huruf besar, huruf kecil, dan angka",
+    )
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str):
+        pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$"
+        if not re.match(pattern, v):
+            raise ValueError(
+                "Password harus mengandung huruf besar, huruf kecil, dan angka"
+            )
+        return v
 
 
 class UserResponse(BaseModel):
@@ -81,9 +102,14 @@ class UserResponse(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    """Schema untuk login request."""
-    email: str = Field(..., examples=["user@student.itk.ac.id"])
-    password: str = Field(..., examples=["password123"])
+    email: EmailStr = Field(
+        ...,
+        examples=["user@student.itk.ac.id"],
+    )
+    password: str = Field(
+        ...,
+        examples=["Password123"],
+    )
 
 
 class TokenResponse(BaseModel):
