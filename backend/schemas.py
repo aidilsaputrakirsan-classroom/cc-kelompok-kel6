@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr, field_validator
 from typing import Optional
 from datetime import datetime
+import re
 
 
 # === BASE SCHEMA ===
@@ -57,3 +58,36 @@ class ItemStats(BaseModel):
     total_value: float
     most_expensive: Optional[ItemSummary] = None
     cheapest: Optional[ItemSummary] = None
+
+
+
+class UserCreate(BaseModel):
+    """Schema untuk registrasi user baru."""
+    email: str = Field(..., examples=["user@student.itk.ac.id"])
+    name: str = Field(..., min_length=2, max_length=100, examples=["Aidil Saputra"])
+    password: str = Field(..., min_length=8, examples=["password123"])
+
+
+class UserResponse(BaseModel):
+    """Schema untuk response user (tanpa password)."""
+    id: int
+    email: str
+    name: str
+    is_active: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class LoginRequest(BaseModel):
+    """Schema untuk login request."""
+    email: str = Field(..., examples=["user@student.itk.ac.id"])
+    password: str = Field(..., examples=["password123"])
+
+
+class TokenResponse(BaseModel):
+    """Schema untuk response setelah login berhasil."""
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
