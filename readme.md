@@ -33,12 +33,54 @@ Aplikasi ini ditujukan bagi seluruh pengurus HMSI untuk mendukung transparansi, 
 
 *(Diagram ini akan berkembang setiap minggu)*
 
-## 🚀 Getting Started
+## 🚀 Prasyarat
 
-### Prasyarat
-- Python 3.10+
-- Node.js 18+
-- Git
+Sebelum menjalankan aplikasi **SIKASI (Sistem Informasi Keuangan dan Administrasi HMSI)**, terdapat beberapa perangkat lunak yang harus terinstal pada komputer. Prasyarat ini diperlukan agar sistem backend dan frontend dapat berjalan dengan baik serta mendukung proses pengembangan dan kolaborasi tim.
+
+### 1. Python 3.10+
+
+Python digunakan sebagai bahasa pemrograman utama pada sisi **backend**. Aplikasi ini dibangun menggunakan framework **FastAPI**, yang berjalan di atas Python. Seluruh logika bisnis seperti pencatatan pemasukan, pengeluaran, setoran, pengelolaan surat, hingga integrasi dengan database dijalankan melalui backend berbasis Python.
+
+Versi minimal **Python 3.10+** diperlukan karena:
+- Mendukung fitur modern seperti type hints yang lebih optimal.
+- Kompatibel dengan library terbaru yang digunakan dalam proyek.
+- Memberikan performa dan keamanan yang lebih baik dibandingkan versi lama.
+
+Tanpa Python, backend tidak dapat dijalankan sehingga sistem tidak dapat memproses data keuangan maupun administrasi.
+
+---
+
+### 2. Node.js 18+
+
+Node.js digunakan untuk menjalankan **frontend** yang dibangun menggunakan **React** dan Vite. Node.js berfungsi untuk:
+- Mengelola dependency melalui `npm`
+- Menjalankan server development frontend
+- Melakukan proses build aplikasi
+
+Versi **Node.js 18+** direkomendasikan karena:
+- Mendukung versi terbaru React dan Vite.
+- Lebih stabil dan memiliki dukungan jangka panjang (LTS).
+- Menghindari error dependency yang sering terjadi pada versi lama.
+
+Tanpa Node.js, tampilan antarmuka (UI) aplikasi tidak dapat dijalankan sehingga pengguna tidak dapat mengakses sistem melalui browser.
+
+---
+
+### 3. Git
+
+Git digunakan sebagai sistem **version control** untuk mendukung kolaborasi tim dalam pengembangan aplikasi. Melalui Git, setiap anggota tim dapat:
+- Melakukan commit perubahan kode
+- Mengelola riwayat pengembangan proyek
+- Menghindari konflik saat bekerja secara bersamaan
+- Mengirim dan mengambil pembaruan dari GitHub Classroom
+
+Git sangat penting dalam proyek ini karena sistem dikembangkan secara tim dan harus dipush ke repository GitHub sebagai bagian dari penilaian.
+
+Tanpa Git, proses kolaborasi dan pengumpulan tugas tidak dapat dilakukan dengan baik.
+
+---
+
+Dengan memenuhi seluruh prasyarat di atas, aplikasi SIKASI dapat dijalankan secara optimal baik pada sisi backend maupun frontend, serta mendukung proses pengembangan yang terstruktur dan kolaboratif.
 
 ### Backend
 ```bash
