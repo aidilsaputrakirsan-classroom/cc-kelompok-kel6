@@ -28,7 +28,7 @@ function App() {
   return (
     <div style={{ padding: "2rem", fontFamily: "Arial" }}>
       <h1>☁️ Cloud App</h1>
-      <h2>Mata Kuliah Komputasi Awan - SI ITK</h2>
+      <h2>SIKASI - Sistem Informasi Keuangan dan Administrasi HMSI</h2>
 
       {loading ? (
         <p>Loading...</p>
