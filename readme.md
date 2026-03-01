@@ -16,14 +16,14 @@ Aplikasi ini ditujukan bagi seluruh pengurus HMSI untuk mendukung transparansi, 
 
 ## 🛠️ Tech Stack
 
-| Teknologi | Fungsi |
-|-----------|--------|
-| FastAPI   | Backend REST API |
-| React     | Frontend SPA |
-| PostgreSQL | Database |
-| Docker    | Containerization |
-| GitHub Actions | CI/CD |
-| Railway/Render | Cloud Deployment |
+| Teknologi | Fungsi | Keterangan |
+|-----------|--------|------------|
+| FastAPI   | Backend REST API | Membangun dan menyediakan endpoint API yang menangani proses bisnis, validasi data, dan komunikasi dengan database |
+| React     | Frontend SPA | Membangun tampilan antarmuka pengguna yang interaktif dan mengonsumsi data dari backend API |
+| PostgreSQL | Database | Menyimpan, mengelola, dan mengambil data aplikasi secara terstruktur |
+| Docker    | Containerization | Menjalankan aplikasi dalam container agar environment development dan production tetap konsisten |
+| GitHub Actions | CI/CD | Melakukan otomatisasi proses pembangunan aplikasi, pengujian, serta penerapan sistem setiap kali terjadi perubahan pada kode |
+| Railway/Render | Cloud Deployment | Layanan cloud untuk mendistribusikan dan menjalankan aplikasi pada server secara online |
 
 ## 🏗️ Architecture
 
