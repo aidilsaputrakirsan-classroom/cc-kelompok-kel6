@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
+from sqlalchemy import func
 from models import Item
 from schemas import ItemCreate, ItemUpdate
 
@@ -21,7 +22,7 @@ def get_items(db: Session, skip: int = 0, limit: int = 20, search: str = None):
     - search: cari berdasarkan nama atau deskripsi
     """
     query = db.query(Item)
-    
+
     if search:
         query = query.filter(
             or_(
@@ -29,10 +30,10 @@ def get_items(db: Session, skip: int = 0, limit: int = 20, search: str = None):
                 Item.description.ilike(f"%{search}%")
             )
         )
-    
+
     total = query.count()
     items = query.order_by(Item.created_at.desc()).offset(skip).limit(limit).all()
-    
+
     return {"total": total, "items": items}
 
 
@@ -47,15 +48,15 @@ def update_item(db: Session, item_id: int, item_data: ItemUpdate) -> Item | None
     Hanya update field yang dikirim (bukan None).
     """
     db_item = db.query(Item).filter(Item.id == item_id).first()
-    
+
     if not db_item:
         return None
-    
+
     # Hanya update field yang dikirim (exclude_unset=True)
     update_data = item_data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(db_item, field, value)
-    
+
     db.commit()
     db.refresh(db_item)
     return db_item
@@ -64,10 +65,26 @@ def update_item(db: Session, item_id: int, item_data: ItemUpdate) -> Item | None
 def delete_item(db: Session, item_id: int) -> bool:
     """Hapus item berdasarkan ID. Return True jika berhasil."""
     db_item = db.query(Item).filter(Item.id == item_id).first()
-    
+
     if not db_item:
         return False
-    
+
     db.delete(db_item)
     db.commit()
     return True
+
+def get_stats(db: Session):
+    total = db.query(func.count(Item.id)).scalar() or 0
+    if total == 0:
+        return {"total_items": 0, "total_value": 0, "most_expensive": None, "cheapest": None}
+
+    total_value = db.query(func.sum(Item.price * Item.quantity)).scalar() or 0
+    most_expensive = db.query(Item).order_by(Item.price.desc()).first()
+    cheapest = db.query(Item).order_by(Item.price.asc()).first()
+
+    return {
+        "total_items": total,
+        "total_value": total_value,
+        "most_expensive": most_expensive,
+        "cheapest": cheapest,
+    }
