@@ -21,7 +21,7 @@ class ItemCreate(ItemBase):
 # === UPDATE SCHEMA (untuk PUT request) ===
 class ItemUpdate(BaseModel):
     """
-    Schema untuk update item. Semua field optional 
+    Schema untuk update item. Semua field optional
     karena user mungkin hanya ingin update sebagian field.
     """
     name: Optional[str] = Field(None, min_length=1, max_length=100)
@@ -46,3 +46,14 @@ class ItemListResponse(BaseModel):
     """Schema untuk response list items dengan total count."""
     total: int
     items: list[ItemResponse]
+
+
+class ItemSummary(BaseModel):
+    name: str
+    price: float
+
+class ItemStats(BaseModel):
+    total_items: int
+    total_value: float
+    most_expensive: Optional[ItemSummary] = None
+    cheapest: Optional[ItemSummary] = None
