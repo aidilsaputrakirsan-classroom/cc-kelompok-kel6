@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from database import engine, get_db
 from models import Base
-from schemas import ItemCreate, ItemUpdate, ItemResponse, ItemListResponse
+from schemas import ItemCreate, ItemUpdate, ItemResponse, ItemListResponse, ItemStats
 import crud
 
 # Buat semua tabel di database (jika belum ada)
@@ -16,15 +16,24 @@ app = FastAPI(
     version="0.2.0",
 )
 
-# CORS
+
+# CORS - agar frontend bisa akses API ini
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Untuk development saja
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+
+@app.get("/")
+def root():
+    return {
+        "message": "Hello from Cloud App API!",
+        "status": "running",
+        "version": "0.1.0"
+    }
 
 # ==================== HEALTH CHECK ====================
 
@@ -40,7 +49,7 @@ def health_check():
 def create_item(item: ItemCreate, db: Session = Depends(get_db)):
     """
     Buat item baru.
-    
+
     - **name**: Nama item (wajib, 1-100 karakter)
     - **price**: Harga (wajib, > 0)
     - **description**: Deskripsi (opsional)
@@ -58,13 +67,17 @@ def list_items(
 ):
     """
     Ambil daftar items dengan pagination dan search.
-    
+
     - **skip**: Offset untuk pagination (default: 0)
     - **limit**: Jumlah item per halaman (default: 20, max: 100)
     - **search**: Kata kunci pencarian (opsional)
     """
     return crud.get_items(db=db, skip=skip, limit=limit, search=search)
 
+@app.get("/items/stats", response_model=ItemStats)
+def items_stats(db: Session = Depends(get_db)):
+    """Statistik inventory."""
+    return crud.get_stats(db=db)
 
 @app.get("/items/{item_id}", response_model=ItemResponse)
 def get_item(item_id: int, db: Session = Depends(get_db)):
@@ -95,20 +108,17 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=f"Item dengan id={item_id} tidak ditemukan")
     return None
 
-
 # ==================== TEAM INFO ====================
 
 @app.get("/team")
 def team_info():
-    """Informasi tim."""
     return {
         "team": "cc-kelompok-kel6",
         "members": [
-            # TODO: Isi dengan data tim Anda
             {"name": "Achmad Bayhaqi", "nim": "10231001", "role": "Lead Backend"},
-            {"name": "Indah Nur Fortuna", "nim": "10231044", "role": "Lead Frontend"},
-            {"name": "Alfiani Dwiyuniarti", "nim": "10231010", "role": "Lead DevOps"},
-            {"name": "Zahwa Hanna Dwi Putri", "nim": "10231092", "role": "Lead CI/CD & Deploy"},
+            {"name": "INDAH NUR FORTUNA", "nim": "10231044", "role": "Lead Frontend"},
+            {"name": "Alfiani Dwiyuniarti", "nim": "10231010", "role": "Lead Container"},
+            {"name": "ZAHWA HANNA DWI PUTRI", "nim": "10231092", "role": "Lead CI/CD & Deploy"},
             {"name": "Nilam Ayu NandaStari Romdoni", "nim": "10231070", "role": "Lead QA & Docs"},
-        ],
+        ]
     }
