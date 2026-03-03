@@ -85,59 +85,151 @@ npm run dev
 ```
 
 
-# Back-end Setup
 
-bikin folder `venv/:
+---
 
+# 🚀 Project Setup Guide
+
+## 1️⃣ Backend Setup
+
+Masuk ke folder backend:
+
+```bash
+cd backend
 ```
+
+### Buat Environment Variables (.env)
+
+Buat file .env di dalam folder backend/.
+
+Contoh isi:
+```
+# Database
+DATABASE_URL=postgresql://postgres:PASSWORD_ANDA@localhost:5432/cloudapp
+
+# JWT
+SECRET_KEY=ganti-dengan-random-string-panjang-minimal-32-karakter
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+
+# CORS
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+```
+
+Catatan Penting
+
+- Pastikan PostgreSQL sudah berjalan.
+- Buat database cloudapp terlebih dahulu.
+- Jangan commit file .env. Tambahkan ke .gitignore.
+- Gunakan openssl rand -hex 32 untuk generate SECRET_KEY.
+
+### Buat Virtual Environment (venv)
+
+```bash
 python -m venv venv
 ```
 
-Aktivasi tergantung OS:
+### Aktivasi Virtual Environment
 
-Mac / Linux:
+**Mac / Linux**
 
-```
+```bash
 source venv/bin/activate
 ```
 
-Windows (PowerShell):
+**Windows (PowerShell)**
 
-```
+```bash
 venv\Scripts\Activate
 ```
 
-Kalau sudah aktif, di terminal biasanya ada `(venv)` di depan.
-Kalau nggak ada, berarti belum aktif. Jangan install global.
+Kalau berhasil aktif, terminal akan menampilkan `(venv)` di depan.
+Kalau tidak ada, berarti belum aktif. Jangan install dependency secara global.
 
 ---
 
-INSTALL DEPENDENCY
+### Install Dependencies
 
-Pastikan punya `requirements.txt` berisi:
+Pastikan file `requirements.txt` tersedia, contoh:
 
-```
+```txt
 fastapi==0.115.0
 uvicorn==0.30.0
-.....
+...
 ```
 
-Lalu install:
+Install dengan:
 
-```
+```bash
 pip install -r requirements.txt
 ```
 
-Kalau error “pip not found”, berarti Python kamu nggak ke PATH dengan benar.
+Jika muncul error `pip not found`, kemungkinan Python belum terdaftar di PATH.
 
 ---
 
-JALANKAN SERVER BACKEND
+### Jalankan Backend Server
 
-di folder backend:
+Masih di dalam folder `backend`:
 
-```
+```bash
 uvicorn main:app --reload --port 8000
 ```
 
-# Front-end Setup
+Server akan berjalan di:
+
+```
+http://localhost:8000
+```
+
+---
+
+## 2️⃣ Frontend Setup
+
+Masuk ke folder frontend:
+
+```bash
+cd frontend
+```
+
+### Install Dependencies
+
+```bash
+npm install
+```
+
+### Jalankan Development Server
+
+```bash
+npm run dev
+```
+
+Biasanya akan berjalan di:
+
+```
+http://localhost:5173
+```
+
+---
+
+## 3️⃣ Git Useful Alias
+
+Biar nggak ribet ngetik panjang-panjang tiap mau lihat riwayat commit, bikin alias ini:
+
+```bash
+git config --global alias.graph "log --all --decorate --oneline --graph"
+```
+
+Penjelasan singkat:
+
+* `--all` → tampilkan semua branch
+* `--decorate` → tampilkan nama branch & tag
+* `--oneline` → ringkas satu baris per commit
+* `--graph` → tampilkan struktur percabangan dalam bentuk grafik ASCII
+
+Setelah itu, cukup jalankan:
+
+```bash
+git graph
+```
+Lalu bisa melihat seluruh riwayat commit lengkap dengan visual branching-nya.
