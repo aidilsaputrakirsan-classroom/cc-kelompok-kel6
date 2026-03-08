@@ -233,3 +233,89 @@ Setelah itu, cukup jalankan:
 git graph
 ```
 Lalu bisa melihat seluruh riwayat commit lengkap dengan visual branching-nya.
+
+
+# 📡 API Documentation
+## 1️⃣ GET
+### GET /Items
+Mengembalikan 3 items dengan total : 3 <p>
+**Method** <br>
+    
+    GET
+
+**URL**
+
+    /items
+
+**Request Body**<br>
+Endpoint ini tidak memerlukan request body karena hanya digunakan untuk mengambil daftar item.
+
+**Response Example**
+```
+{
+  "total": 3,
+  "items": [
+    {
+      "name": "Keyboard Mechanical",
+      "description": "Keyboard untuk coding",
+      "price": 1200000,
+      "quantity": 8,
+      "id": 11,
+      "created_at": "2026-03-07T21:59:34.163510+08:00",
+      "update_at": null
+    },
+    {
+      "name": "Mouse Wireless",
+      "description": "Mouse bluetooth",
+      "price": 25000,
+      "quantity": 20,
+      "id": 10,
+      "created_at": "2026-03-07T21:58:15.651992+08:00",
+      "update_at": null
+    },
+    {
+      "name": "Laptop",
+      "description": "Laptop untuk cloud computing",
+      "price": 15000000,
+      "quantity": 5,
+      "id": 9,
+      "created_at": "2026-03-07T21:56:13.996353+08:00",
+      "update_at": null
+    }
+  ]
+}
+```
+
+### GET /Items/stats
+Mengembalikan statistik 3 data items. <p>
+**Method** <br>
+
+    GET
+
+**URL** <br>
+
+    /items/stats
+
+**Request Body** <br>
+Endpoint ini tidak memerlukan request body karena hanya digunakan untuk mengambil data statistik dari seluruh item yang tersimpan di sistem.
+
+**Response Example** <br>
+```
+{
+  "total_items": 3,
+  "total_quantity": 33,
+  "total_value": 17800000,
+  "most_expensive_item": "Laptop",
+  "cheapest_item": "Mouse Wireless"
+}
+```
+Penjelasan : <br>
+| Field | Keterangan |
+|-------|------------|
+|total_items|jumlah jenis item|
+|total_quantity|total semua stok item|
+|total_value|total nilai semua barang|
+|most_expensive_item|item dengan harga tertinggi|
+|cheapest_item|item dengan harga terendah|
+
+
