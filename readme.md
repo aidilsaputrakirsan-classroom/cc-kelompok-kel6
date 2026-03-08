@@ -4,7 +4,7 @@ Sistem ini adalah sistem yang dirancang untuk membantu para pengurus Himpunan Ma
 
 Aplikasi ini ditujukan bagi seluruh pengurus HMSI untuk mendukung transparansi, ketertiban, dan efisiensi dalam pengelolaan organisasi. Sistem ini hadir sebagai solusi atas permasalahan pencatatan manual yang sering tidak terorganisir, sulit direkap, dan kurang transparan. Dengan adanya sistem yang terintegrasi, proses pelaporan dan administrasi menjadi lebih akurat, praktis, dan mudah diakses ketika dibutuhkan.
 
-## 👥 Tim
+## 👥 Tim Kelompok 6
 
 | Nama | NIM | Peran |
 |------|-----|-------|
