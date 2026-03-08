@@ -240,6 +240,7 @@ Lalu bisa melihat seluruh riwayat commit lengkap dengan visual branching-nya.
 # 📡 API Documentation
 
 ## 1️⃣ POST
+### POST /items
 Endpoint ini digunakan untuk menambahkan item baru ke dalam sistem inventory.<p>
 **Method** <br>
     
