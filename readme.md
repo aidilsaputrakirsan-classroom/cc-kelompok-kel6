@@ -235,10 +235,86 @@ git graph
 Lalu bisa melihat seluruh riwayat commit lengkap dengan visual branching-nya.
 
 
+---
+
 # 📡 API Documentation
-## 1️⃣ GET
-### GET /Items
-Mengembalikan 3 items dengan total : 3 <p>
+
+## 1️⃣ POST
+Endpoint ini digunakan untuk menambahkan item baru ke dalam sistem inventory.<p>
+**Method** <br>
+    
+    POST
+
+**URL**
+
+    /items
+
+**Request Body** <p>
+Item 1 (Laptop) :
+```
+{
+  "name": "Laptop",
+  "description": "Laptop untuk cloud computing",
+  "price": 15000000,
+  "quantity": 5
+}
+```
+Item 2 (Mouse) : 
+```
+{
+  "name": "Mouse Wireless",
+  "description": "Mouse bluetooth",
+  "price": 25000,
+  "quantity": 20
+}
+```
+Item 3 (Keyboard) :
+```
+{
+  "name": "Keyboard Mechanical",
+  "description": "Keyboard untuk coding",
+  "price": 1200000,
+  "quantity": 8
+}
+```
+
+**Response Example** <p>
+Item 1 (Laptop) : 
+```
+{
+  "id": 9,
+  "name": "Laptop",
+  "description": "Laptop untuk cloud computing",
+  "price": 15000000,
+  "quantity": 5
+}
+```
+Item 2 (Mouse) : 
+```
+{
+  "id": 10,
+  "name": "Mouse Wireless",
+  "description": "Mouse bluetooth",
+  "price": 25000,
+  "quantity": 20
+}
+```
+Item 3 (Keyboard) :
+```
+{
+  "id": 11,
+  "name": "Keyboard Mechanical",
+  "description": "Keyboard untuk coding",
+  "price": 1200000,
+  "quantity": 8
+}
+```
+
+---
+
+## 2️⃣ GET
+### GET /items
+Endpoint ini digunakan untuk mengambil seluruh daftar item yang tersimpan di dalam sistem inventory. Biasanya digunakan ketika pengguna ingin melihat semua item yang tersedia di database.<p>
 **Method** <br>
     
     GET
@@ -247,7 +323,7 @@ Mengembalikan 3 items dengan total : 3 <p>
 
     /items
 
-**Request Body**<br>
+**Request Body** <p>
 Endpoint ini tidak memerlukan request body karena hanya digunakan untuk mengambil daftar item.
 
 **Response Example**
@@ -267,7 +343,7 @@ Endpoint ini tidak memerlukan request body karena hanya digunakan untuk mengambi
     {
       "name": "Mouse Wireless",
       "description": "Mouse bluetooth",
-      "price": 25000,
+      "price": 250000,
       "quantity": 20,
       "id": 10,
       "created_at": "2026-03-07T21:58:15.651992+08:00",
@@ -286,8 +362,37 @@ Endpoint ini tidak memerlukan request body karena hanya digunakan untuk mengambi
 }
 ```
 
-### GET /Items/stats
-Mengembalikan statistik 3 data items. <p>
+### GET /items/{item_id}
+Endpoint ini digunakan untuk mengambil data satu item tertentu berdasarkan ID dan biasanya digunakan ketika pengguna ingin melihat detail dari satu item secara spesifik.
+
+**Method** <br>
+
+    GET
+
+**URL**
+
+    /items/{item_id}
+
+*Note* :<br> Nilai id berupa angka (integer) yang mewakili identitas unik dari setiap item. Sebagai contoh, jika pengguna melakukan request GET /items/1, maka sistem akan mencari dan menampilkan data item yang memiliki ID bernilai 1 di dalam database.
+
+**Request Body** <p>
+Endpoint ini tidak memerlukan request body karena hanya digunakan untuk mengambil data berdasarkan ID.
+
+**Response Example**
+```
+{
+  "id": 11,
+  "name": "Keyboard Mechanical",
+  "description": "Keyboard untuk coding",
+  "price": 1200000,
+  "quantity": 8,
+  "created_at": "2026-03-07T21:59:34.163510+08:00",
+  "updated_at": null
+}
+```
+
+### GET /items/stats
+Endpoint ini digunakan untuk mengambil data statistik dari seluruh item yang tersimpan di sistem inventory dan membantu pengguna untuk melihat ringkasan data inventory tanpa harus melihat setiap item secara detail. <p>
 **Method** <br>
 
     GET
@@ -296,15 +401,15 @@ Mengembalikan statistik 3 data items. <p>
 
     /items/stats
 
-**Request Body** <br>
+**Request Body** <p>
 Endpoint ini tidak memerlukan request body karena hanya digunakan untuk mengambil data statistik dari seluruh item yang tersimpan di sistem.
 
-**Response Example** <br>
+**Response Example**
 ```
 {
   "total_items": 3,
   "total_quantity": 33,
-  "total_value": 17800000,
+  "total_value": 89600000,
   "most_expensive_item": "Laptop",
   "cheapest_item": "Mouse Wireless"
 }
@@ -318,4 +423,69 @@ Penjelasan : <br>
 |most_expensive_item|item dengan harga tertinggi|
 |cheapest_item|item dengan harga terendah|
 
+---
 
+## 3️⃣ PUT
+### PUT /items/{item_id}
+Endpoint ini digunakan untuk memperbarui data item yang sudah ada di dalam sistem inventory berdasarkan ID item. <p>
+**Method** 
+
+    PUT
+
+**URL**
+
+    /items/{item_id}
+
+*Note* :<br> Nilai id berupa angka (integer) yang mewakili identitas unik dari setiap item. Sebagai contoh, jika pengguna melakukan request PUT /items/1, maka sistem akan memperbarui data item yang memiliki ID bernilai 1 di dalam database dengan data terbaru yang dikirim melalui request body.
+
+**Request Body**<p>
+Pengguna ingin mengubah harga laptop yang sebelumnya 15000000 menjadi 14000000.
+```
+{
+  "id": 9,
+  "name": "Laptop",
+  "description": "Laptop untuk cloud computing",
+  "price": 14000000,
+  "quantity": 5
+}
+```
+
+**Response Example** <br>
+Harga laptop akan berubah menjadi 14000000 sesuai yang telah diubah oleh pengguna.
+```
+{
+  "name": "Laptop",
+  "description": "Laptop untuk cloud computing",
+  "price": 14000000,
+  "quantity": 5,
+  "id": 9,
+  "created_at": "2026-03-07T21:59:34.163510+08:00",
+  "updated_at": "2026-03-08T10:45:00+08:00"
+}
+```
+
+---
+
+## 4️⃣ DELETE
+### DELETE /items/{item_id} 
+Endpoint ini digunakan untuk menghapus item tertentu dari sistem inventory berdasarkan ID.
+Ketika endpoint ini dipanggil, sistem akan mencari item yang memiliki ID sesuai dan kemudian menghapusnya dari database.<p>
+**Method**
+
+    DELETE
+
+**URL**
+
+    /items/{item_id}
+
+**Request Body** <p>
+Endpoint ini tidak memerlukan request body karena hanya membutuhkan ID item pada URL.
+
+**Response Example**
+```
+{
+  "message": "Item successfully deleted"
+}
+```
+
+----
