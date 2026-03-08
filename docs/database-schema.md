@@ -1,6 +1,8 @@
 # Database Schema
 
-## Table: items
+## Table: items 
+
+Tabel items digunakan untuk menyimpan seluruh data barang atau item yang terdapat pada sistem inventory. Tabel ini menjadi pusat penyimpanan informasi item, mulai dari identitas item, nama, deskripsi, harga, jumlah stok, hingga waktu pembuatan dan pembaruan data. Dengan adanya tabel ini, sistem dapat mengelola data inventory secara terstruktur, seperti menambahkan item baru, menampilkan daftar item, memperbarui informasi item, menghapus item, serta menghitung statistik inventory.
 
 | Kolom | Tipe | Penjelasan |
 |------|------|------|
