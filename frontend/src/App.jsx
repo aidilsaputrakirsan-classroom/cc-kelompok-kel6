@@ -1,61 +1,146 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
+import Header from "./components/Header"
+import SearchBar from "./components/SearchBar"
+import ItemForm from "./components/ItemForm"
+import ItemList from "./components/ItemList"
+import { fetchItems, createItem, updateItem, deleteItem, checkHealth } from "./services/api"
 
 function App() {
-  const [data, setData] = useState(null)
-  const [team, setTeam] = useState(null)
+
+  // ==================== STATE ====================
+  const [items, setItems] = useState([])
+  const [totalItems, setTotalItems] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [isConnected, setIsConnected] = useState(false)
+  const [editingItem, setEditingItem] = useState(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [sortBy, setSortBy] = useState("") // ⭐ state sorting
 
-  useEffect(() => {
-    // Fetch API root
-    fetch("http://localhost:8000/")
-      .then(res => res.json())
-      .then(json => {
-        setData(json)
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error("Error:", err)
-        setLoading(false)
-      })
-
-    // Fetch team info
-    fetch("http://localhost:8000/team")
-      .then(res => res.json())
-      .then(json => setTeam(json))
-      .catch(err => console.error("Error:", err))
+  // ==================== LOAD DATA ====================
+  const loadItems = useCallback(async (search = "") => {
+    setLoading(true)
+    try {
+      const data = await fetchItems(search)
+      setItems(data.items)
+      setTotalItems(data.total)
+    } catch (err) {
+      console.error("Error loading items:", err)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
+  // ==================== ON MOUNT ====================
+  useEffect(() => {
+    checkHealth().then(setIsConnected)
+    loadItems()
+  }, [loadItems])
+
+  // ==================== SORTING (FRONTEND) ====================
+  const sortedItems = useMemo(() => {
+    let sorted = [...items]
+
+    if (sortBy === "name") {
+      sorted.sort((a, b) => a.name.localeCompare(b.name))
+    }
+
+    if (sortBy === "price") {
+      sorted.sort((a, b) => a.price - b.price)
+    }
+
+    if (sortBy === "newest") {
+      sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    }
+
+    return sorted
+  }, [items, sortBy])
+
+  // ==================== HANDLERS ====================
+
+  const handleSubmit = async (itemData, editId) => {
+    if (editId) {
+      await updateItem(editId, itemData)
+      setEditingItem(null)
+    } else {
+      await createItem(itemData)
+    }
+
+    loadItems(searchQuery)
+  }
+
+  const handleEdit = (item) => {
+    setEditingItem(item)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  const handleDelete = async (id) => {
+    const item = items.find((i) => i.id === id)
+    if (!window.confirm(`Yakin ingin menghapus "${item?.name}"?`)) return
+
+    try {
+      await deleteItem(id)
+      loadItems(searchQuery)
+    } catch (err) {
+      alert("Gagal menghapus: " + err.message)
+    }
+  }
+
+  const handleSearch = (query) => {
+    setSearchQuery(query)
+    loadItems(query)
+  }
+
+  const handleSort = (type) => {
+    setSortBy(type)
+  }
+
+  const handleCancelEdit = () => {
+    setEditingItem(null)
+  }
+
+  // ==================== RENDER ====================
   return (
-    <div style={{ padding: "2rem", fontFamily: "Arial" }}>
-      <h1>☁️ Cloud App</h1>
-      <h2>SIKASI - Sistem Informasi Keuangan dan Administrasi HMSI</h2>
+    <div style={styles.app}>
+      <div style={styles.container}>
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : data ? (
-        <div>
-          <h3>API Response:</h3>
-          <p>Message: {data.message}</p>
-          <p>Status: {data.status}</p>
-          <p>Version: {data.version}</p>
-        </div>
-      ) : (
-        <p style={{ color: "red" }}>Error connecting to backend</p>
-      )}
+        <Header totalItems={totalItems} isConnected={isConnected} />
 
-      {team && (
-        <div>
-          <h3>Tim: {team.team}</h3>
-          <ul>
-            {team.members.map((m, i) => (
-              <li key={i}>{m.name} ({m.nim}) - {m.role}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+        <ItemForm
+          onSubmit={handleSubmit}
+          editingItem={editingItem}
+          onCancelEdit={handleCancelEdit}
+        />
+
+        {/* SEARCH + SORT */}
+        <SearchBar
+          onSearch={handleSearch}
+          onSort={handleSort}
+        />
+
+        {/* LIST ITEM */}
+        <ItemList
+          items={sortedItems}   // ⭐ pakai hasil sorting
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          loading={loading}
+        />
+
+      </div>
     </div>
   )
 }
 
-export default App
+const styles = {
+  app: {
+    minHeight: "100vh",
+    backgroundColor: "#f0f2f5",
+    padding: "2rem",
+    fontFamily: "'Segoe UI', Arial, sans-serif",
+  },
+  container: {
+    maxWidth: "900px",
+    margin: "0 auto",
+  },
+}
 
+export default App
