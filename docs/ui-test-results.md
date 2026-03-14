@@ -43,7 +43,7 @@ Terdapat 10 alur pada sistem yang perlu dilakukan testing yaitu sebagai berikut.
 
 8. **Hapus item, confirm dialog muncul** <br>
     Pada tahap ini pengguna menghapus item dengan mengklik tombol delete pada item yang ingin dihapus.
-    <img src="Image/test8-hapus-item.png">
+    <img src="Image/test8-hapus-item.png"> 
     Berdasarkan gambar tersebut, saya memilih item Laptop untuk dihapus dengan mengklik tombol delete dan sistem akan menampilkan sebuah konfirmasi kepada saya untuk menyetujui penghapusan pada item tersebut.
 
 9. **Item hilang dari daftar** <br>
