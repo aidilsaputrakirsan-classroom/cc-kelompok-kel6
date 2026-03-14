@@ -4,6 +4,7 @@ import SearchBar from "./components/SearchBar"
 import ItemForm from "./components/ItemForm"
 import ItemList from "./components/ItemList"
 import { fetchItems, createItem, updateItem, deleteItem, checkHealth } from "./services/api"
+import Toast from "./components/Toast"
 
 function App() {
 
@@ -15,6 +16,8 @@ function App() {
   const [editingItem, setEditingItem] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [sortBy, setSortBy] = useState("") // ⭐ state sorting
+  const [toastMessage, setToastMessage] = useState("")
+  const [toastType, setToastType] = useState("success")
 
   // ==================== LOAD DATA ====================
   const loadItems = useCallback(async (search = "") => {
@@ -58,32 +61,41 @@ function App() {
   // ==================== HANDLERS ====================
 
   const handleSubmit = async (itemData, editId) => {
+  try {
     if (editId) {
       await updateItem(editId, itemData)
       setEditingItem(null)
+      setToastMessage("Item berhasil diperbarui")
+      setToastType("success")
     } else {
       await createItem(itemData)
+      setToastMessage("Item berhasil ditambahkan")
+      setToastType("success")
     }
 
     loadItems(searchQuery)
-  }
 
-  const handleEdit = (item) => {
-    setEditingItem(item)
-    window.scrollTo({ top: 0, behavior: "smooth" })
+  } catch (err) {
+    setToastMessage("Gagal menyimpan item")
+    setToastType("error")
   }
+}
 
   const handleDelete = async (id) => {
-    const item = items.find((i) => i.id === id)
-    if (!window.confirm(`Yakin ingin menghapus "${item?.name}"?`)) return
+  const item = items.find((i) => i.id === id)
 
-    try {
-      await deleteItem(id)
-      loadItems(searchQuery)
-    } catch (err) {
-      alert("Gagal menghapus: " + err.message)
-    }
+  if (!window.confirm(`Yakin ingin menghapus "${item?.name}"?`)) return
+
+  try {
+    await deleteItem(id)
+    setToastMessage("Item berhasil dihapus")
+    setToastType("success")
+    loadItems(searchQuery)
+  } catch (err) {
+    setToastMessage("Gagal menghapus item")
+    setToastType("error")
   }
+}
 
   const handleSearch = (query) => {
     setSearchQuery(query)
@@ -98,10 +110,21 @@ function App() {
     setEditingItem(null)
   }
 
+  const handleEdit = (item) => {
+  setEditingItem(item)
+  }
+
   // ==================== RENDER ====================
-  return (
-    <div style={styles.app}>
-      <div style={styles.container}>
+return (
+  <div style={styles.app}>
+
+    <Toast
+      message={toastMessage}
+      type={toastType}
+      onClose={() => setToastMessage("")}
+    />
+
+    <div style={styles.container}>
 
         <Header totalItems={totalItems} isConnected={isConnected} />
 
