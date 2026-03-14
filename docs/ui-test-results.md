@@ -56,4 +56,23 @@ Terdapat 10 alur pada sistem yang perlu dilakukan testing yaitu sebagai berikut.
     <img src="image/test10-hapus-item-2.png">
     Disini saya mencoba untuk menghapus 2 item yang tersisa sebelumnya dengan melakukan konfirmasi persetujuan penghapusan item-item. Kemudian sistem akan memproses permintaan tersebut.
     <img src="image/test10-empty-state.png">
-    Setelah proses penghapusan yang dilakukan sistem berhasil, maka sistem tidak akan menampilkan daftar item kembali karena item yang ada sebelumnya telah dihapus dan saat ini sistem menampilkan sebuah empty state yang menunjukkan bahwa tidak ada item dalam sistem ini. 
+    Setelah proses penghapusan yang dilakukan sistem berhasil, maka sistem tidak akan menampilkan daftar item kembali karena item yang ada sebelumnya telah dihapus dan saat ini sistem menampilkan sebuah empty state yang menunjukkan bahwa tidak ada item dalam sistem ini.
+
+---
+# (Tambahan) Dokumentasi Komponen Notifikasi/Toast
+Penambahan fitur notifikasi/toast ini adalah untuk memberikan respon secara langsung ke pengguna ketika pengguna melakukan aktifitas menambahkan, mengedit, atau menghapus. Dengan notifikasi akan muncul secara otomatis dan menghilang otomatis dalam 3 detik. Dengan adanya fitur ini, pengguna dapat mengetahui status dari aktifitas yang dilakukan.
+
+## 1. Menambahkan Items
+<img src="image/toast-tambah.png">
+
+Ini dokumentasi yang menunjukkan notifikasi toast yang muncul ketika pengguna berhasil menambahkan item baru. Sistem menampilkan pesan “Item berhasil ditambahkan” sebagai tanda bahwa data telah berhasil diproses dan disimpan oleh sistem.
+
+## 2. Edit Items
+<img src="image/toast-edit.png">
+
+Ini dokumentasi yang menunjukkan notifikasi toast yang muncul setelah pengguna berhasil mengedit data item. Pesan “Item berhasil diperbarui” ditampilkan sebagai konfirmasi bahwa perubahan data telah berhasil disimpan oleh sistem.
+
+## 3. Hapus Items
+<img src="image/toast-hapus.png">
+
+Ini dokumentasi yang menunjukkan notifikasi toast yang muncul setelah pengguna berhasil menghapus item dari daftar. Sistem menampilkan pesan “Item berhasil dihapus” sebagai konfirmasi bahwa data item telah berhasil dihapus dari sistem.
