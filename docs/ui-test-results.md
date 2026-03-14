@@ -42,8 +42,8 @@ Terdapat 10 alur pada sistem yang perlu dilakukan testing yaitu sebagai berikut.
     Berdasarkan gambar tersebut, saya ingin mencari item Laptop menggunakan fitur SearchBar dengan memasukkan kata kunci berupa Laptop. Sistem akan menampilkan daftar item yang sesuai dengan kata kunci pencarian, disini saya mencari Laptop sehingga yang tampil pada daftar item hanya Laptop saja yang menandakan bahwa SearchBar berhasil dijalankan.
 
 8. **Hapus item, confirm dialog muncul** <br>
+    <img src="image/test8-hapus-item.png">
     Pada tahap ini pengguna menghapus item dengan mengklik tombol delete pada item yang ingin dihapus.
-    <img src="Image/test8-hapus-item.png"> 
     Berdasarkan gambar tersebut, saya memilih item Laptop untuk dihapus dengan mengklik tombol delete dan sistem akan menampilkan sebuah konfirmasi kepada saya untuk menyetujui penghapusan pada item tersebut.
 
 9. **Item hilang dari daftar** <br>
