@@ -50,7 +50,7 @@ def health_check():
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
     """
     Registrasi user baru.
-
+    
     - **email**: Email unik (akan digunakan untuk login)
     - **name**: Nama lengkap
     - **password**: Minimal 8 karakter
@@ -63,17 +63,11 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
 
 @app.post("/auth/login", response_model=TokenResponse)
 def login(login_data: LoginRequest, db: Session = Depends(get_db)):
-    """
-    Login dan dapatkan JWT token.
-
-    Token berlaku selama 60 menit (default).
-    Gunakan token di header: `Authorization: Bearer <token>`
-    """
     user = crud.authenticate_user(db=db, email=login_data.email, password=login_data.password)
     if not user:
         raise HTTPException(status_code=401, detail="Email atau password salah")
 
-    token = create_access_token(data={"sub": str(user.id)})
+    token = create_access_token(data={"sub": str(user.id)})  # ← Tambah str()
     return {
         "access_token": token,
         "token_type": "bearer",
@@ -156,12 +150,11 @@ def delete_item(
 @app.get("/team")
 def team_info():
     return {
-        "team": "cc-kelompok-kel6",
+        "team": "cloud-team-XX",
         "members": [
-            {"name": "Achmad Bayhaqi", "nim": "10231001", "role": "Lead Backend"},
-            {"name": "INDAH NUR FORTUNA", "nim": "10231044", "role": "Lead Frontend"},
-            {"name": "Alfiani Dwiyuniarti", "nim": "10231010", "role": "Lead Container"},
-            {"name": "ZAHWA HANNA DWI PUTRI", "nim": "10231092", "role": "Lead CI/CD & Deploy"},
-            {"name": "Nilam Ayu NandaStari Romdoni", "nim": "10231070", "role": "Lead QA & Docs"},
-        ]
+            {"name": "Nama 1", "nim": "NIM1", "role": "Lead Backend"},
+            {"name": "Nama 2", "nim": "NIM2", "role": "Lead Frontend"},
+            {"name": "Nama 3", "nim": "NIM3", "role": "Lead DevOps"},
+            {"name": "Nama 4", "nim": "NIM4", "role": "Lead QA & Docs"},
+        ],
     }
