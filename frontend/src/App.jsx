@@ -1,23 +1,35 @@
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Header from "./components/Header"
 import SearchBar from "./components/SearchBar"
 import ItemForm from "./components/ItemForm"
 import ItemList from "./components/ItemList"
-import { fetchItems, createItem, updateItem, deleteItem, checkHealth } from "./services/api"
-import Toast from "./components/Toast"
+import LoginPage from "./components/LoginPage"
+import {
+  fetchItems, createItem, updateItem, deleteItem,
+  checkHealth, login, register, setToken, clearToken,
+} from "./services/api"
 
 function App() {
+  // ==================== AUTH STATE ====================
+  const [user, setUser] = useState(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  // ==================== STATE ====================
+  // ==================== APP STATE ====================
   const [items, setItems] = useState([])
   const [totalItems, setTotalItems] = useState(0)
   const [loading, setLoading] = useState(true)
   const [isConnected, setIsConnected] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
-  const [sortBy, setSortBy] = useState("") // ⭐ state sorting
-  const [toastMessage, setToastMessage] = useState("")
-  const [toastType, setToastType] = useState("success")
+
+  // ==================== TAMBAHAN ====================
+  const [notification, setNotification] = useState(null)
+  const [actionLoading, setActionLoading] = useState(false)
+
+  const showNotification = (type, message) => {
+    setNotification({ type, message })
+    setTimeout(() => setNotification(null), 3000)
+  }
 
   // ==================== LOAD DATA ====================
   const loadItems = useCallback(async (search = "") => {
@@ -27,128 +39,154 @@ function App() {
       setItems(data.items)
       setTotalItems(data.total)
     } catch (err) {
+      if (err.message === "UNAUTHORIZED") {
+        handleLogout()
+      }
       console.error("Error loading items:", err)
     } finally {
       setLoading(false)
     }
   }, [])
 
-  // ==================== ON MOUNT ====================
   useEffect(() => {
     checkHealth().then(setIsConnected)
-    loadItems()
-  }, [loadItems])
+  }, [])
 
-  // ==================== SORTING (FRONTEND) ====================
-  const sortedItems = useMemo(() => {
-    let sorted = [...items]
-
-    if (sortBy === "name") {
-      sorted.sort((a, b) => a.name.localeCompare(b.name))
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadItems()
     }
+  }, [isAuthenticated, loadItems])
 
-    if (sortBy === "price") {
-      sorted.sort((a, b) => a.price - b.price)
-    }
+  // ==================== AUTH ====================
 
-    if (sortBy === "newest") {
-      sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    }
+  const handleLogin = async (email, password) => {
+    const data = await login(email, password)
+    setUser(data.user)
+    setIsAuthenticated(true)
+    showNotification("success", "Login berhasil")
+  }
 
-    return sorted
-  }, [items, sortBy])
+  const handleRegister = async (userData) => {
+    await register(userData)
+    await handleLogin(userData.email, userData.password)
+    showNotification("success", "Register berhasil")
+  }
 
-  // ==================== HANDLERS ====================
+  const handleLogout = () => {
+    clearToken()
+    setUser(null)
+    setIsAuthenticated(false)
+    setItems([])
+    setTotalItems(0)
+    setEditingItem(null)
+    setSearchQuery("")
+    showNotification("success", "Logout berhasil")
+  }
+
+  // ==================== ITEM ====================
 
   const handleSubmit = async (itemData, editId) => {
-  try {
-    if (editId) {
-      await updateItem(editId, itemData)
-      setEditingItem(null)
-      setToastMessage("Item berhasil diperbarui")
-      setToastType("success")
-    } else {
-      await createItem(itemData)
-      setToastMessage("Item berhasil ditambahkan")
-      setToastType("success")
+    setActionLoading(true)
+    try {
+      if (editId) {
+        await updateItem(editId, itemData)
+        setEditingItem(null)
+        showNotification("success", "Data berhasil diupdate")
+      } else {
+        await createItem(itemData)
+        showNotification("success", "Data berhasil ditambahkan")
+      }
+      loadItems(searchQuery)
+    } catch (err) {
+      if (err.message === "UNAUTHORIZED") handleLogout()
+      else showNotification("error", err.message)
+    } finally {
+      setActionLoading(false)
     }
-
-    loadItems(searchQuery)
-
-  } catch (err) {
-    setToastMessage("Gagal menyimpan item")
-    setToastType("error")
   }
-}
+
+  const handleEdit = (item) => {
+    setEditingItem(item)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
 
   const handleDelete = async (id) => {
-  const item = items.find((i) => i.id === id)
+    const item = items.find((i) => i.id === id)
+    if (!window.confirm(`Yakin ingin menghapus "${item?.name}"?`)) return
 
-  if (!window.confirm(`Yakin ingin menghapus "${item?.name}"?`)) return
-
-  try {
-    await deleteItem(id)
-    setToastMessage("Item berhasil dihapus")
-    setToastType("success")
-    loadItems(searchQuery)
-  } catch (err) {
-    setToastMessage("Gagal menghapus item")
-    setToastType("error")
+    setActionLoading(true)
+    try {
+      await deleteItem(id)
+      showNotification("success", "Data berhasil dihapus")
+      loadItems(searchQuery)
+    } catch (err) {
+      if (err.message === "UNAUTHORIZED") handleLogout()
+      else showNotification("error", "Gagal menghapus: " + err.message)
+    } finally {
+      setActionLoading(false)
+    }
   }
-}
 
   const handleSearch = (query) => {
     setSearchQuery(query)
     loadItems(query)
   }
 
-  const handleSort = (type) => {
-    setSortBy(type)
-  }
-
-  const handleCancelEdit = () => {
-    setEditingItem(null)
-  }
-
-  const handleEdit = (item) => {
-  setEditingItem(item)
-  }
-
   // ==================== RENDER ====================
-return (
-  <div style={styles.app}>
 
-    <Toast
-      message={toastMessage}
-      type={toastType}
-      onClose={() => setToastMessage("")}
-    />
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={handleLogin} onRegister={handleRegister} />
+  }
 
-    <div style={styles.container}>
+  return (
+    <div style={styles.app}>
+      <div style={styles.container}>
 
-        <Header totalItems={totalItems} isConnected={isConnected} />
+        {/* ===== NOTIF (STABIL, TIDAK FLOATING) ===== */}
+        {notification && (
+          <div
+            style={{
+              ...styles.notification,
+              backgroundColor:
+                notification.type === "success" ? "#d4edda" : "#f8d7da",
+              color:
+                notification.type === "success" ? "#155724" : "#721c24",
+            }}
+          >
+            {notification.message}
+          </div>
+        )}
+
+        <Header
+          totalItems={totalItems}
+          isConnected={isConnected}
+          user={user}
+          onLogout={handleLogout}
+        />
 
         <ItemForm
           onSubmit={handleSubmit}
           editingItem={editingItem}
-          onCancelEdit={handleCancelEdit}
+          onCancelEdit={() => setEditingItem(null)}
         />
 
-        {/* SEARCH + SORT */}
-        <SearchBar
-          onSearch={handleSearch}
-          onSort={handleSort}
-        />
+        <SearchBar onSearch={handleSearch} />
 
-        {/* LIST ITEM */}
         <ItemList
-          items={sortedItems}   // ⭐ pakai hasil sorting
+          items={items}
           onEdit={handleEdit}
           onDelete={handleDelete}
           loading={loading}
         />
-
       </div>
+
+      {/* ===== LOADING ===== */}
+      {actionLoading && (
+        <div style={styles.overlay}>
+          <div style={styles.spinner}></div>
+        </div>
+      )}
     </div>
   )
 }
@@ -160,9 +198,44 @@ const styles = {
     padding: "2rem",
     fontFamily: "'Segoe UI', Arial, sans-serif",
   },
+
   container: {
     maxWidth: "900px",
     margin: "0 auto",
+  },
+
+  // ✅ NOTIF CLEAN (NO POSITION BUG)
+  notification: {
+    width: "100%",
+    padding: "14px 20px",
+    borderRadius: "10px",
+    textAlign: "center",
+    fontWeight: "500",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+    marginBottom: "16px",
+  },
+
+  // LOADING
+  overlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0,0,0,0.3)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+
+  spinner: {
+    width: "50px",
+    height: "50px",
+    border: "5px solid #ccc",
+    borderTop: "5px solid #333",
+    borderRadius: "50%",
+    animation: "spin 1s linear infinite",
   },
 }
 
