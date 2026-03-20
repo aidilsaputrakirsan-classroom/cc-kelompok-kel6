@@ -80,9 +80,9 @@ Endpoint ini digunakan untuk membuat akun pengguna baru. Setiap email hanya bisa
 Contoh request body:
 ```json
 {
-  "email": "hanna@student.itk.ac.id",
+  "email": "10231092@student.itk.ac.id",
   "name": "Zahwa Hanna",
-  "password": "password123"
+  "password": "hanna123"
 }
 ```
 
@@ -90,7 +90,7 @@ Contoh request body:
 ```json
 {
   "id": 1,
-  "email": "hanna@student.itk.ac.id",
+  "email": "10231092@student.itk.ac.id",
   "name": "Zahwa Hanna",
   "is_active": true,
   "created_at": "2026-03-21T10:00:00"
@@ -108,7 +108,7 @@ Contoh request body:
 ```bash
 curl -X POST http://localhost:8000/auth/register \
   -H "Content-Type: application/json" \
-  -d "{\"email\": \"hanna@student.itk.ac.id\", \"name\": \"Zahwa Hanna\", \"password\": \"password123\"}"
+  -d "{\"email\": \"10231092@student.itk.ac.id\", \"name\": \"Zahwa Hanna\", \"password\": \"hanna123\"}"
 ```
 
 ---
@@ -131,8 +131,8 @@ Endpoint ini digunakan untuk masuk ke aplikasi menggunakan email dan password ya
 Contoh request body:
 ```json
 {
-  "email": "hanna@student.itk.ac.id",
-  "password": "password123"
+  "email": "10231092@student.itk.ac.id",
+  "password": "hanna123"
 }
 ```
 
@@ -143,7 +143,7 @@ Contoh request body:
   "token_type": "bearer",
   "user": {
     "id": 1,
-    "email": "hanna@student.itk.ac.id",
+    "email": "10231092@student.itk.ac.id",
     "name": "Zahwa Hanna",
     "is_active": true,
     "created_at": "2026-03-21T10:00:00"
@@ -164,7 +164,7 @@ Nilai `access_token` pada respons di atas perlu disimpan karena akan digunakan s
 ```bash
 curl -X POST http://localhost:8000/auth/login \
   -H "Content-Type: application/json" \
-  -d "{\"email\": \"hanna@student.itk.ac.id\", \"password\": \"password123\"}"
+  -d "{\"email\": \"10231092@student.itk.ac.id\", \"password\": \"hanna123\"}"
 ```
 
 ---
@@ -183,7 +183,7 @@ Endpoint ini digunakan untuk melihat data profil dari akun yang sedang login.
 ```json
 {
   "id": 1,
-  "email": "hanna@student.itk.ac.id",
+  "email": "10231092@student.itk.ac.id",
   "name": "Zahwa Hanna",
   "is_active": true,
   "created_at": "2026-03-21T10:00:00"
