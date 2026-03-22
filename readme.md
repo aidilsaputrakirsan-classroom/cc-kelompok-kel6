@@ -28,6 +28,7 @@ Aplikasi ini ditujukan bagi seluruh pengurus HMSI untuk mendukung transparansi, 
 ## 🏗️ Architecture
 
 ```
+
 [React Frontend] <--HTTP--> [FastAPI Backend] <--SQL--> [PostgreSQL]
 ```
 
@@ -493,7 +494,30 @@ Endpoint ini tidak memerlukan request body karena hanya membutuhkan ID item pada
 
 # 🔐 Authentication
 ----
-## Testing Authentication
+## 📡 API Endpoint
+### 🌐 Public Endpoints
+Public endpoints adalah endpoint yang bisa diakses tanpa login atau autentikasi. Endpoint ini biasanya digunakan untuk proses awal seperti register, login, atau pengecekan status server. Karena tidak membutuhkan token, siapa saja dapat mengakses endpoint ini. <p>
+| Method | Endpoint         | Deskripsi          |
+| ------ | ---------------- | ------------------ |
+| GET    | `/health`        | Cek status API     |
+| POST   | `/auth/register` | Register user baru |
+| POST   | `/auth/login`    | Login user         |
+
+### 🔐 Protected Endpoints
+Protected endpoints adalah endpoint yang hanya bisa diakses oleh user yang sudah login. Untuk mengaksesnya, user harus menyertakan token (Bearer Token) pada header request. <p>
+
+| Method | Endpoint      | Deskripsi             |
+| ------ | ------------- | --------------------- |
+| GET    | `/auth/me`    | Ambil data user login |
+| POST   | `/items`      | Tambah item           |
+| GET    | `/items`      | Ambil semua item      |
+| GET    | `/items/{id}` | Ambil detail item     |
+| PUT    | `/items/{id}` | Update item           |
+| DELETE | `/items/{id}` | Hapus item            |
+
+---
+
+## 🔍 Testing Authentication
 ### 1️⃣ Login page muncul ?
 **Endpoint** : - <p>
 **Langkah** : <br>
@@ -506,7 +530,7 @@ Ketika aplikasi diakses melalui localhost:5173, sistem berhasil menampilkan hala
 ### 2️⃣ Register User Baru
 **Endpoint** : 
 ```
-POST /register
+POST /auth/register
 ```
 **Langkah** : <br>
 1. Klik register
@@ -519,7 +543,7 @@ Proses register user baru berhasil dilakukan, dimana data user yang diinput berh
 ### 3️⃣ Otomatis Login Setelah Register
 **Endpoint** : 
 ```
-POST /register
+POST /auth/register
 ```
 **Langkah** : <br>
 1. Selesaikan proses register<p>
@@ -539,7 +563,7 @@ Setelah login, sistem berhasil menampilkan halaman utama beserta data items yang
 ### 5️⃣ Nama user di header?
 **Endpoint** : 
 ``` 
-GET /user
+GET /auth/me
 ```
 **Hasil Aktual** : <p>
 Nama user yang sedang login berhasil ditampilkan pada bagian header aplikasi. Ini membuktikan bahwa data user dapat diambil dari backend dan ditampilkan dengan benar di sisi frontend.
@@ -549,6 +573,7 @@ Nama user yang sedang login berhasil ditampilkan pada bagian header aplikasi. In
 ``` 
 POST /items
 GET /items
+GET /items/{item_id}
 PUT /items/{item_id}
 DELETE /items/{item_id}
 ```
@@ -556,10 +581,7 @@ DELETE /items/{item_id}
 Seluruh operasi CRUD (Create, Read, Update, Delete) berhasil dijalankan. Data berhasil ditambahkan, ditampilkan, diperbarui, dan dihapus melalui endpoint yang tersedia. Perubahan data juga langsung terlihat di tampilan aplikasi.
 
 ### 7️⃣ Klik logout
-**Endpoint** : 
-``` 
-POST /logout
-```
+**Endpoint** : - <p>
 **Hasil Aktual** : <p>
 Fitur logout berhasil dijalankan, dimana ketika tombol logout diklik, sistem menghapus session pengguna dan mengakhiri akses ke aplikasi.
 
@@ -571,7 +593,7 @@ Setelah logout, pengguna secara otomatis diarahkan kembali ke halaman login. Hal
 ### 9️⃣ Login dengan akun tadi
 **Endpoint** : 
 ``` 
-POST /login
+POST /auth/login
 ```
 **Hasil Aktual** : <p>
 Pengguna dapat login kembali menggunakan akun yang telah dibuat sebelumnya melalui endpoint. Proses autentikasi berhasil dan pengguna diarahkan ke halaman utama.
