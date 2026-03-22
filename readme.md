@@ -490,3 +490,96 @@ Endpoint ini tidak memerlukan request body karena hanya membutuhkan ID item pada
 ```
 
 ----
+
+# 🔐 Authentication
+----
+## Testing Authentication
+### 1️⃣ Login page muncul ?
+**Endpoint** : - <p>
+**Langkah** : <br>
+1. Pengguna mengakses http://localhost:5173/ <p>
+
+**Hasil Aktual** : Halaman Login berhasil ditampilkan <p>
+Ketika aplikasi diakses melalui localhost:5173, sistem berhasil menampilkan halaman login sebagai tampilan awal. Hal ini menunjukkan bahwa routing aplikasi berjalan dengan baik dan halaman autentikasi dapat diakses tanpa kendala.
+
+
+### 2️⃣ Register User Baru
+**Endpoint** : 
+```
+POST /register
+```
+**Langkah** : <br>
+1. Klik register
+2. Input data user berupa Nama Lengkap, Email, dan Password
+3. Klik tombol Register <p>
+
+**Hasil Aktual** : Akun user berhasil tersimpan dan mengakses aplikasi <p>
+Proses register user baru berhasil dilakukan, dimana data user yang diinput berhasil dikirim ke endpoint POST /register dan tersimpan di database.
+
+### 3️⃣ Otomatis Login Setelah Register
+**Endpoint** : 
+```
+POST /register
+```
+**Langkah** : <br>
+1. Selesaikan proses register<p>
+
+**Hasil Aktual** : User berhasil masuk aplikasi tanpa login ulang <p>
+Setelah proses registrasi selesai, sistem secara otomatis melakukan login dengan membuat session. Pengguna langsung diarahkan ke halaman utama tanpa perlu login ulang, menandakan fitur auto-authentication berjalan dengan baik.
+
+### 4️⃣ Main app + Items muncul?
+**Endpoint** : 
+``` 
+GET /items
+```
+
+**Hasil Aktual** : <p>
+Setelah login, sistem berhasil menampilkan halaman utama beserta data items yang diambil dari endpoint GET /items. Hal ini menunjukkan integrasi antara frontend dan backend berjalan dengan baik.
+
+### 5️⃣ Nama user di header?
+**Endpoint** : 
+``` 
+GET /user
+```
+**Hasil Aktual** : <p>
+Nama user yang sedang login berhasil ditampilkan pada bagian header aplikasi. Ini membuktikan bahwa data user dapat diambil dari backend dan ditampilkan dengan benar di sisi frontend.
+
+### 6️⃣ CRUD items berfungsi
+**Endpoint** : 
+``` 
+POST /items
+GET /items
+PUT /items/{item_id}
+DELETE /items/{item_id}
+```
+**Hasil Aktual** : <p>
+Seluruh operasi CRUD (Create, Read, Update, Delete) berhasil dijalankan. Data berhasil ditambahkan, ditampilkan, diperbarui, dan dihapus melalui endpoint yang tersedia. Perubahan data juga langsung terlihat di tampilan aplikasi.
+
+### 7️⃣ Klik logout
+**Endpoint** : 
+``` 
+POST /logout
+```
+**Hasil Aktual** : <p>
+Fitur logout berhasil dijalankan, dimana ketika tombol logout diklik, sistem menghapus session pengguna dan mengakhiri akses ke aplikasi.
+
+### 8️⃣ Kembali ke Login Page
+**Endpoint** : - <p>
+**Hasil Aktual** : <p>
+Setelah logout, pengguna secara otomatis diarahkan kembali ke halaman login. Hal ini menunjukkan bahwa proteksi halaman (authentication guard) berjalan dengan baik.
+
+### 9️⃣ Login dengan akun tadi
+**Endpoint** : 
+``` 
+POST /login
+```
+**Hasil Aktual** : <p>
+Pengguna dapat login kembali menggunakan akun yang telah dibuat sebelumnya melalui endpoint. Proses autentikasi berhasil dan pengguna diarahkan ke halaman utama.
+
+### 🔟 Data items masih ada?
+**Endpoint** : 
+``` 
+GET /items
+```
+**Hasil Aktual** : <p>
+Setelah login ulang, data items tetap tersedia dan tidak hilang. Hal ini menunjukkan bahwa data disimpan secara permanen di database (persistent) dan tidak bergantung pada session sementara.
