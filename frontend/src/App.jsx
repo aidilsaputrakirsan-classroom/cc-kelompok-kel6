@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { authAPI } from './services/api'
+
 import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 import FinanceModule from './components/FinanceModule'
@@ -15,25 +16,20 @@ function App() {
     const token = localStorage.getItem('token')
     if (token) {
       authAPI.getMe()
-        .then((response) => {
-          setUser(response.data)
-        })
+        .then((res) => setUser(res.data))
         .catch(() => {
           localStorage.removeItem('token')
           setUser(null)
         })
-        .finally(() => {
-          setLoading(false)
-        })
+        .finally(() => setLoading(false))
     } else {
       setLoading(false)
     }
   }, [])
 
   const handleLoginSuccess = (data) => {
-    const { access_token, user: userData } = data
-    localStorage.setItem('token', access_token)
-    setUser(userData)
+    localStorage.setItem('token', data.access_token)
+    setUser(data.user)
   }
 
   const handleLogout = () => {
@@ -41,50 +37,32 @@ function App() {
     setUser(null)
   }
 
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'sans-serif' }}>
-        <p>Mohon tunggu, sedang memuat SIKASI...</p>
-      </div>
-    )
-  }
+  if (loading) return <p>Loading...</p>
 
   return (
     <Router>
-      {/* BARIS DI BAWAH INI DIHAPUS (Navigation) 
-          Karena kita sudah pakai Sidebar di dalam Dashboard 
-      */}
-      
       <Routes>
-        {/* Halaman Utama */}
-        <Route
-          path="/"
-          element={user ? <Dashboard user={user} onLogout={handleLogout} /> : <Navigate to="/login" />}
-        />
 
-        {/* Halaman Login */}
+        {/* LOGIN */}
         <Route
           path="/login"
           element={!user ? <Login onLoginSuccess={handleLoginSuccess} /> : <Navigate to="/" />}
         />
 
-        {/* Modul Keuangan */}
+        {/* LAYOUT DASHBOARD */}
         <Route
-          path="/finance"
-          element={user ? <FinanceModule user={user} /> : <Navigate to="/login" />}
-        />
+          path="/"
+          element={user ? <Dashboard user={user} onLogout={handleLogout} /> : <Navigate to="/login" />}
+        >
 
-        {/* Modul Surat */}
-        <Route
-          path="/letter"
-          element={user ? <LetterModule user={user} /> : <Navigate to="/login" />}
-        />
+          {/* HALAMAN DALAM DASHBOARD */}
+          <Route index element={<h1>Dashboard Home</h1>} />
+          <Route path="finance" element={<FinanceModule user={user} />} />
+          <Route path="letter" element={<LetterModule user={user} />} />
+          <Route path="users" element={<UserManagement user={user} />} />
 
-        {/* Manajemen User */}
-        <Route
-          path="/users"
-          element={user && user.role === 'Ketua' ? <UserManagement user={user} /> : <Navigate to="/" />}
-        />
+        </Route>
+
       </Routes>
     </Router>
   )

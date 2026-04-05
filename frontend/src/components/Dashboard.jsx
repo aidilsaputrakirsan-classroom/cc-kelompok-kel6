@@ -1,16 +1,21 @@
 import { useState, useEffect } from 'react'
 import { financeAPI } from '../services/api'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation, Outlet } from 'react-router-dom'
 
 export default function Dashboard({ user, onLogout }) {
   const [cashflow, setCashflow] = useState(null)
   const [loading, setLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [dark, setDark] = useState(false)
+
   const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
-    fetchCashflow()
-  }, [])
+    if (location.pathname === '/') {
+      fetchCashflow()
+    }
+  }, [location.pathname])
 
   const fetchCashflow = async () => {
     try {
@@ -24,42 +29,41 @@ export default function Dashboard({ user, onLogout }) {
   const formatRupiah = (val) =>
     new Intl.NumberFormat('id-ID', {
       style: 'currency',
-      currency: 'IDR',
-      maximumFractionDigits: 0,
+      currency: 'IDR'
     }).format(val || 0)
 
+  /* 🔥 DATA CHART (SEMENTARA) */
+  const chartData = [
+    { label: 'Jan', value: 200000 },
+    { label: 'Feb', value: 350000 },
+    { label: 'Mar', value: 300000 },
+    { label: 'Apr', value: 500000 },
+    { label: 'Mei', value: 450000 },
+  ]
+
   return (
-    <div style={styles.layout}>
+    <div style={{
+      ...styles.layout,
+      background: dark ? '#0f172a' : '#f8fafc',
+      color: dark ? '#fff' : '#000'
+    }}>
 
       {/* SIDEBAR */}
       <aside style={{
         ...styles.sidebar,
         transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)'
       }}>
-        
-        {/* LOGO */}
-        <div style={styles.logoWrap}>
-          <div style={styles.logoIcon}>S</div>
-          <div>
-            <h2 style={styles.logoText}>SIKASI</h2>
-            <p style={styles.logoSub}>Finance System</p>
-          </div>
-        </div>
+        <h2>SIKASI</h2>
 
-        {/* MENU */}
-        <div style={styles.menu}>
+        <MenuItem active={location.pathname === '/'} onClick={() => navigate('/')}>
+          Dashboard
+        </MenuItem>
 
-          <MenuItem active label="Dashboard" icon={icons.dashboard} />
-          <MenuItem label="Keuangan" icon={icons.wallet} onClick={() => navigate('/finance')} />
-          <MenuItem label="Surat" icon={icons.mail} onClick={() => navigate('/letter')} />
-          <MenuItem label="Laporan" icon={icons.file} />
+        <MenuItem active={location.pathname === '/finance'} onClick={() => navigate('/finance')}>
+          Keuangan
+        </MenuItem>
 
-        </div>
-
-        {/* LOGOUT */}
-        <button style={styles.logout} onClick={onLogout}>
-          {icons.logout} Logout
-        </button>
+        <button style={styles.logout} onClick={onLogout}>Logout</button>
       </aside>
 
       {/* MAIN */}
@@ -70,185 +74,181 @@ export default function Dashboard({ user, onLogout }) {
 
         {/* TOPBAR */}
         <div style={styles.topbar}>
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} style={styles.toggle}>
-            ☰
-          </button>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
 
-          <div style={styles.profile}>
-            <div>
-              <p style={styles.name}>{user.username}</p>
-              <p style={styles.role}>{user.role}</p>
-            </div>
-            <div style={styles.avatar}>
-              {user.username.charAt(0).toUpperCase()}
-            </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={() => setDark(!dark)}>
+              {dark ? '☀️' : '🌙'}
+            </button>
+            <b>{user.username}</b>
           </div>
         </div>
 
         {/* CONTENT */}
         <div style={styles.content}>
-          <h1 style={styles.title}>Dashboard Keuangan</h1>
 
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <div style={styles.grid}>
-              
-              <div style={styles.cardGreen}>
-                <p>Pemasukan</p>
-                <h2>{formatRupiah(cashflow?.total_income)}</h2>
+          {location.pathname === '/' && !loading && (
+            <>
+              <h1>Dashboard</h1>
+
+              <div style={styles.grid}>
+                <Card title="Pemasukan" value={formatRupiah(cashflow.total_income)} color="#22c55e"/>
+                <Card title="Pengeluaran" value={formatRupiah(cashflow.total_expense)} color="#ef4444"/>
+                <Card title="Saldo" value={formatRupiah(cashflow.balance)} color="#3b82f6"/>
               </div>
 
-              <div style={styles.cardRed}>
-                <p>Pengeluaran</p>
-                <h2>{formatRupiah(cashflow?.total_expense)}</h2>
+              {/* LINE CHART */}
+              <div style={styles.chartBox}>
+                <h3>Trend Keuangan</h3>
+                <LineChart data={chartData} />
               </div>
-
-              <div style={styles.cardBlue}>
-                <p>Saldo</p>
-                <h2>{formatRupiah(cashflow?.balance)}</h2>
-              </div>
-
-            </div>
+            </>
           )}
-        </div>
 
+          <Outlet />
+        </div>
       </main>
     </div>
   )
 }
 
-/* 🔥 COMPONENT MENU ITEM */
-function MenuItem({ label, icon, active, onClick }) {
+/* MENU */
+function MenuItem({ children, active, onClick }) {
   return (
     <div
       onClick={onClick}
       style={{
-        ...styles.menuItem,
-        ...(active && styles.activeItem)
+        padding: 12,
+        marginBottom: 8,
+        borderRadius: 10,
+        cursor: 'pointer',
+        background: active ? '#3b82f6' : 'transparent',
+        transition: '0.2s'
       }}
+      onMouseEnter={(e) => e.target.style.background = '#334155'}
+      onMouseLeave={(e) => e.target.style.background = active ? '#3b82f6' : 'transparent'}
     >
-      {icon}
-      {label}
+      {children}
     </div>
   )
 }
 
-/* 🔥 ICON MANUAL (SVG) */
-const icons = {
-  dashboard: <svg width="18" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>,
-  wallet: <svg width="18" fill="currentColor" viewBox="0 0 24 24"><path d="M21 7H3v10h18V7zm-2 6h-4v-2h4v2z"/></svg>,
-  mail: <svg width="18" fill="currentColor" viewBox="0 0 24 24"><path d="M2 4h20v16H2V4zm10 7l10-7H2l10 7z"/></svg>,
-  file: <svg width="18" fill="currentColor" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6V2zm8 1.5V9h5.5"/></svg>,
-  logout: <svg width="18" fill="currentColor" viewBox="0 0 24 24"><path d="M16 17l5-5-5-5v3H9v4h7v3z"/><path d="M4 4h9v2H6v12h7v2H4z"/></svg>
+/* CARD */
+function Card({ title, value, color }) {
+  return (
+    <div
+      style={{
+        padding: 20,
+        borderRadius: 15,
+        background: '#fff',
+        boxShadow: '0 10px 20px rgba(0,0,0,0.05)',
+        transition: '0.2s'
+      }}
+      onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+      onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+    >
+      <p>{title}</p>
+      <h2 style={{ color }}>{value}</h2>
+    </div>
+  )
 }
 
-/* 🔥 STYLES */
+/* LINE CHART */
+function LineChart({ data }) {
+  const width = 500
+  const height = 200
+  const padding = 40
+
+  const max = Math.max(...data.map(d => d.value))
+
+  const points = data.map((d, i) => {
+    const x = padding + (i * (width - padding * 2)) / (data.length - 1)
+    const y = height - padding - (d.value / max) * (height - padding * 2)
+    return `${x},${y}`
+  })
+
+  return (
+    <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
+      
+      {/* GRID */}
+      {[0,1,2,3,4].map(i => (
+        <line
+          key={i}
+          x1={padding}
+          x2={width - padding}
+          y1={padding + i * 30}
+          y2={padding + i * 30}
+          stroke="#e5e7eb"
+        />
+      ))}
+
+      {/* LINE */}
+      <polyline
+        fill="none"
+        stroke="#3b82f6"
+        strokeWidth="3"
+        points={points.join(' ')}
+        style={{
+          strokeDasharray: 1000,
+          strokeDashoffset: 1000,
+          animation: 'draw 1.5s ease forwards'
+        }}
+      />
+
+      {/* DOT */}
+      {points.map((p, i) => {
+        const [x, y] = p.split(',')
+        return <circle key={i} cx={x} cy={y} r="5" fill="#3b82f6" />
+      })}
+    </svg>
+  )
+}
+
+/* STYLES */
 const styles = {
-  layout: { display: 'flex', minHeight: '100vh', background: '#f1f5f9' },
+  layout: { display: 'flex', minHeight: '100vh' },
 
   sidebar: {
     position: 'fixed',
     width: 260,
     height: '100%',
-    background: '#1e3a8a',
+    background: '#1e293b',
     color: '#fff',
-    padding: 20,
-    display: 'flex',
-    flexDirection: 'column'
-  },
-
-  logoWrap: {
-    display: 'flex',
-    gap: 10,
-    marginBottom: 30
-  },
-
-  logoIcon: {
-    width: 40,
-    height: 40,
-    background: '#fff',
-    color: '#1e3a8a',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 10,
-    fontWeight: 'bold'
-  },
-
-  logoText: { margin: 0 },
-  logoSub: { fontSize: 10, opacity: 0.7 },
-
-  menu: { flex: 1 },
-
-  menuItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    padding: 12,
-    borderRadius: 10,
-    cursor: 'pointer',
-    marginBottom: 10,
-    color: '#c7d2fe'
-  },
-
-  activeItem: {
-    background: '#3b82f6',
-    color: '#fff'
-  },
-
-  logout: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    padding: 10,
-    borderRadius: 10,
-    background: '#ef4444',
-    color: '#fff'
+    padding: 20
   },
 
   main: { flex: 1 },
 
   topbar: {
-    height: 70,
-    background: '#1e3a8a',
+    height: 60,
+    background: '#1e293b',
+    color: '#fff',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '0 20px',
-    color: '#fff'
+    padding: '0 20px'
   },
 
-  toggle: {
-    background: '#3b82f6',
-    border: 'none',
-    padding: 10,
-    borderRadius: 10,
-    color: '#fff'
-  },
-
-  profile: { display: 'flex', gap: 10 },
-
-  avatar: {
-    width: 35,
-    height: 35,
-    borderRadius: '50%',
-    background: '#fff',
-    color: '#1e3a8a',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-
-  content: { padding: 30 },
+  content: { padding: 20 },
 
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
     gap: 20
   },
 
-  cardGreen: { background: '#ecfdf5', padding: 20, borderRadius: 15 },
-  cardRed: { background: '#fef2f2', padding: 20, borderRadius: 15 },
-  cardBlue: { background: '#eff6ff', padding: 20, borderRadius: 15 }
+  chartBox: {
+    marginTop: 30,
+    padding: 20,
+    background: '#fff',
+    borderRadius: 15
+  },
+
+  logout: {
+    marginTop: 20,
+    padding: 10,
+    background: '#ef4444',
+    borderRadius: 10,
+    color: '#fff'
+  }
 }
