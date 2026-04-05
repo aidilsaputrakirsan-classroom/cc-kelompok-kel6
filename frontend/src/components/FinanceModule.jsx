@@ -1,307 +1,212 @@
-import { useState, useEffect } from 'react'
-import { financeAPI } from '../services/api'
+import { useState, useEffect } from "react";
+import { financeAPI } from "../services/api";
 
 export default function FinanceModule({ user }) {
-  const [activeTab, setActiveTab] = useState('transactions')
-  const [transactions, setTransactions] = useState([])
-  const [categories, setCategories] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [showModal, setShowModal] = useState(false)
-  const [modalType, setModalType] = useState('')
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [formData, setFormData] = useState({
-    name: '',
-    type: 'income',
-    categoryId: '',
-    amount: '',
-    description: '',
-  })
+  const [search, setSearch] = useState("");
+  const [filterYear, setFilterYear] = useState("");
+  const [filterMonth, setFilterMonth] = useState("");
+  const [filterType, setFilterType] = useState("");
+  const [filterDept, setFilterDept] = useState("");
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   const fetchData = async () => {
     try {
-      setLoading(true)
-      const [transRes, catRes] = await Promise.all([
-        financeAPI.getTransactions(),
-        financeAPI.getCategories(),
-      ])
-      setTransactions(transRes.data)
-      setCategories(catRes.data)
+      setLoading(true);
+      // sementara tunggu backend
+      setTransactions([]);
     } catch (err) {
-      setError('Failed to load data')
+      setError("Gagal mengambil data");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
+  const resetFilter = () => {
+    setSearch("");
+    setFilterYear("");
+    setFilterMonth("");
+    setFilterType("");
+    setFilterDept("");
+  };
 
-  const handleAddCategory = async (e) => {
-    e.preventDefault()
-    if (!user || user.role !== 'Bendahara') {
-      setError('Only Bendahara can add categories')
-      return
-    }
+  const departments = [
+    "Exbo",
+    "Infairs",
+    "Extions",
+    "Mention",
+    "Entra",
+    "Sowelf",
+    "Stufare",
+    "Srd",
+    "Stars",
+  ];
 
-    try {
-      await financeAPI.createCategory(formData.name, formData.type)
-      fetchData()
-      setShowModal(false)
-      setFormData({ name: '', type: 'income', categoryId: '', amount: '', description: '' })
-    } catch (err) {
-      setError('Failed to add category')
-    }
-  }
+  const filtered = transactions.filter((t) => {
+    const date = t.created_at ? new Date(t.created_at) : new Date();
+    const matchSearch = t.description?.toLowerCase().includes(search.toLowerCase());
+    const matchYear = filterYear ? date.getFullYear() === parseInt(filterYear) : true;
+    const matchMonth = filterMonth ? date.getMonth() + 1 === parseInt(filterMonth) : true;
+    const matchType = filterType ? t.type === filterType : true;
+    const dept = t.department || "-";
+    const matchDept = filterDept ? dept === filterDept : true;
 
-  const handleAddTransaction = async (e) => {
-    e.preventDefault()
-    if (!user || user.role !== 'Bendahara') {
-      setError('Only Bendahara can add transactions')
-      return
-    }
+    return matchSearch && matchYear && matchMonth && matchType && matchDept;
+  });
 
-    try {
-      await financeAPI.createTransaction(
-        formData.categoryId,
-        parseFloat(formData.amount),
-        formData.description,
-        formData.type
-      )
-      fetchData()
-      setShowModal(false)
-      setFormData({ name: '', type: 'income', categoryId: '', amount: '', description: '' })
-    } catch (err) {
-      setError('Failed to add transaction')
-    }
-  }
-
-  const handleDeleteCategory = async (categoryId) => {
-    if (window.confirm('Are you sure?')) {
-      try {
-        await financeAPI.deleteCategory(categoryId)
-        fetchData()
-      } catch (err) {
-        setError('Failed to delete category')
-      }
-    }
-  }
-
-  const handleDeleteTransaction = async (transactionId) => {
-    if (window.confirm('Are you sure?')) {
-      try {
-        await financeAPI.deleteTransaction(transactionId)
-        fetchData()
-      } catch (err) {
-        setError('Failed to delete transaction')
-      }
-    }
-  }
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 2013 + 1 }, (_, i) => 2013 + i);
+  const months = [
+    { value: "1", label: "Jan" },
+    { value: "2", label: "Feb" },
+    { value: "3", label: "Mar" },
+    { value: "4", label: "Apr" },
+    { value: "5", label: "Mei" },
+    { value: "6", label: "Jun" },
+    { value: "7", label: "Jul" },
+    { value: "8", label: "Agu" },
+    { value: "9", label: "Sep" },
+    { value: "10", label: "Okt" },
+    { value: "11", label: "Nov" },
+    { value: "12", label: "Des" },
+  ];
 
   return (
-    <div className="container">
-      <h1>Finance Module</h1>
-
-      {error && <div className="error">{error}</div>}
-
-      <div style={{ marginBottom: '20px' }}>
-        <button
-          onClick={() => setActiveTab('transactions')}
-          style={{ marginRight: '10px', backgroundColor: activeTab === 'transactions' ? '#007bff' : '#999' }}
-        >
-          Transactions
-        </button>
-        <button
-          onClick={() => setActiveTab('categories')}
-          style={{ backgroundColor: activeTab === 'categories' ? '#007bff' : '#999' }}
-        >
-          Categories
-        </button>
+    <div style={styles.container}>
+      {/* HEADER PROFIL */}
+      <div style={styles.header}>
+        <h2>💰 Finance Module</h2>
+        <div style={styles.profile}>
+          <div style={styles.avatar}>{user.username.charAt(0).toUpperCase()}</div>
+          <div>
+            <p style={styles.username}>{user.username}</p>
+            <p style={styles.role}>{user.role}</p>
+          </div>
+        </div>
       </div>
 
+      {error && <div style={styles.error}>{error}</div>}
+
+      {/* FILTER BAR */}
+      <div style={styles.filterBar}>
+        <input
+          placeholder="🔍 Cari..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={styles.input}
+        />
+
+        <select
+          value={filterYear}
+          onChange={(e) => setFilterYear(e.target.value)}
+          style={styles.input}
+        >
+          <option value="">Tahun</option>
+          {years.map((y) => (
+            <option key={y} value={y}>{y}</option>
+          ))}
+        </select>
+
+        <select
+          value={filterMonth}
+          onChange={(e) => setFilterMonth(e.target.value)}
+          style={styles.input}
+        >
+          <option value="">Bulan</option>
+          {months.map((m) => (
+            <option key={m.value} value={m.value}>{m.label}</option>
+          ))}
+        </select>
+
+        <select
+          value={filterType}
+          onChange={(e) => setFilterType(e.target.value)}
+          style={styles.input}
+        >
+          <option value="">Kategori</option>
+          <option value="income">Pemasukan</option>
+          <option value="expense">Pengeluaran</option>
+        </select>
+
+        <select
+          value={filterDept}
+          onChange={(e) => setFilterDept(e.target.value)}
+          style={styles.input}
+        >
+          <option value="">Departemen</option>
+          {departments.map((d) => (
+            <option key={d} value={d}>{d}</option>
+          ))}
+        </select>
+
+        <button onClick={resetFilter} style={styles.resetBtn}>Reset</button>
+      </div>
+
+      {/* TABLE */}
       {loading ? (
         <p>Loading...</p>
-      ) : activeTab === 'transactions' ? (
-        <div className="card">
-          <h2>Transactions</h2>
-          {user && user.role === 'Bendahara' && (
-            <button onClick={() => { setModalType('transaction'); setShowModal(true); }} style={{ marginBottom: '20px' }}>
-              + Add Transaction
-            </button>
-          )}
-
-          {transactions.length === 0 ? (
-            <p>No transactions</p>
-          ) : (
-            <table>
-              <thead>
+      ) : (
+        <div style={styles.card}>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Jumlah</th>
+                <th>Kategori</th>
+                <th>Departemen</th>
+                <th>Deskripsi</th>
+                <th>Tanggal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
                 <tr>
-                  <th>ID</th>
-                  <th>Amount</th>
-                  <th>Type</th>
-                  <th>Description</th>
-                  <th>Created At</th>
-                  {user && user.role === 'Bendahara' && <th>Action</th>}
+                  <td colSpan="6" style={{ textAlign: "center" }}>Tidak ada data</td>
                 </tr>
-              </thead>
-              <tbody>
-                {transactions.map((t) => (
+              ) : (
+                filtered.map((t) => (
                   <tr key={t.id}>
                     <td>{t.id}</td>
-                    <td>Rp {parseFloat(t.amount).toLocaleString('id-ID')}</td>
-                    <td>{t.type}</td>
+                    <td>Rp {parseFloat(t.amount).toLocaleString("id-ID")}</td>
+                    <td>
+                      <span style={t.type === "income" ? styles.income : styles.expense}>
+                        {t.type === "income" ? "Pemasukan" : "Pengeluaran"}
+                      </span>
+                    </td>
+                    <td>{t.department || "-"}</td>
                     <td>{t.description}</td>
-                    <td>{new Date(t.created_at).toLocaleDateString()}</td>
-                    {user && user.role === 'Bendahara' && (
-                      <td>
-                        <button
-                          onClick={() => handleDeleteTransaction(t.id)}
-                          className="btn-danger btn-small"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    )}
+                    <td>{t.created_at ? new Date(t.created_at).toLocaleDateString() : "-"}</td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      ) : (
-        <div className="card">
-          <h2>Categories</h2>
-          {user && user.role === 'Bendahara' && (
-            <button onClick={() => { setModalType('category'); setShowModal(true); }} style={{ marginBottom: '20px' }}>
-              + Add Category
-            </button>
-          )}
-
-          {categories.length === 0 ? (
-            <p>No categories</p>
-          ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Type</th>
-                  <th>Created At</th>
-                  {user && user.role === 'Bendahara' && <th>Action</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {categories.map((c) => (
-                  <tr key={c.id}>
-                    <td>{c.id}</td>
-                    <td>{c.name}</td>
-                    <td>{c.type}</td>
-                    <td>{new Date(c.created_at).toLocaleDateString()}</td>
-                    {user && user.role === 'Bendahara' && (
-                      <td>
-                        <button
-                          onClick={() => handleDeleteCategory(c.id)}
-                          className="btn-danger btn-small"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
-
-      {showModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <div className="modal-header">
-              {modalType === 'category' ? 'Add Category' : 'Add Transaction'}
-            </div>
-
-            <form onSubmit={modalType === 'category' ? handleAddCategory : handleAddTransaction}>
-              {modalType === 'category' ? (
-                <>
-                  <div className="form-group">
-                    <label>Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Type</label>
-                    <select name="type" value={formData.type} onChange={handleChange}>
-                      <option value="income">Income</option>
-                      <option value="expense">Expense</option>
-                    </select>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="form-group">
-                    <label>Category</label>
-                    <select name="categoryId" value={formData.categoryId} onChange={handleChange} required>
-                      <option value="">Select Category</option>
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label>Amount</label>
-                    <input
-                      type="number"
-                      name="amount"
-                      value={formData.amount}
-                      onChange={handleChange}
-                      step="0.01"
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Description</label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Type</label>
-                    <select name="type" value={formData.type} onChange={handleChange}>
-                      <option value="income">Income</option>
-                      <option value="expense">Expense</option>
-                    </select>
-                  </div>
-                </>
+                ))
               )}
-
-              <div className="modal-footer">
-                <button type="button" onClick={() => setShowModal(false)} style={{ backgroundColor: '#999' }}>
-                  Cancel
-                </button>
-                <button type="submit">Save</button>
-              </div>
-            </form>
-          </div>
+            </tbody>
+          </table>
         </div>
       )}
     </div>
-  )
+  );
 }
+
+/* STYLING SESUAI DASHBOARD */
+const styles = {
+  container: { padding: 30, background: "#f1f5f9", minHeight: "100vh" },
+  header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
+  profile: { display: "flex", gap: 10, background: "#fff", padding: "8px 12px", borderRadius: 12 },
+  avatar: { width: 40, height: 40, borderRadius: "50%", background: "#3b82f6", color: "#fff", display: "flex", justifyContent: "center", alignItems: "center" },
+  username: { margin: 0, fontWeight: "bold" },
+  role: { margin: 0, fontSize: 12, color: "#64748b" },
+  filterBar: { display: "flex", gap: 10, marginBottom: 20, alignItems: "center", flexWrap: "nowrap", overflowX: "auto" },
+  input: { padding: "8px 10px", borderRadius: 12, border: "1px solid #cbd5e1", minWidth: 120 },
+  resetBtn: { background: "#ef4444", color: "#fff", border: "none", padding: "8px 14px", borderRadius: 12, cursor: "pointer" },
+  card: { background: "#fff", padding: 20, borderRadius: 16, boxShadow: "0 10px 25px rgba(0,0,0,0.08)" },
+  table: { width: "100%", borderCollapse: "collapse" },
+  income: { background: "#dcfce7", color: "#16a34a", padding: "3px 10px", borderRadius: 12 },
+  expense: { background: "#fee2e2", color: "#dc2626", padding: "3px 10px", borderRadius: 12 },
+  error: { background: "#fee2e2", padding: 10, borderRadius: 8, marginBottom: 10 },
+};
