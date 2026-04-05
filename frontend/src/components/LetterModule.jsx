@@ -5,17 +5,12 @@ export default function LetterModule({ user }) {
   const [letters, setLetters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [nextNumber, setNextNumber] = useState("");
 
-  const [formData, setFormData] = useState({
-    type: "in",
-    title: "",
-    content: "",
-    senderName: "",
-    recipientName: "",
-    filePath: "",
-  });
+  const [search, setSearch] = useState("");
+  const [filterYear, setFilterYear] = useState("");
+  const [filterMonth, setFilterMonth] = useState("");
+  const [filterDept, setFilterDept] = useState("");
+  const [filterType, setFilterType] = useState("");
 
   useEffect(() => {
     fetchLetters();
@@ -27,327 +22,172 @@ export default function LetterModule({ user }) {
       const response = await letterAPI.getLetters();
       setLetters(response.data);
     } catch (err) {
-      setError("Failed to load letters");
+      setError("Gagal memuat surat");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const resetFilter = () => {
+    setSearch("");
+    setFilterYear("");
+    setFilterMonth("");
+    setFilterDept("");
+    setFilterType("");
   };
 
-  const handleOpenModal = async () => {
-    try {
-      const response = await letterAPI.getNextNumber(formData.type);
-      setNextNumber(response.data.number);
-      setShowModal(true);
-    } catch (err) {
-      setError("Failed to get next letter number");
-    }
-  };
+  const departments = ["Exbo", "Infairs", "Extions", "Mention", "Entra", "Sowelf", "Stufare", "Srd", "Stars"];
 
-  const handleAddLetter = async (e) => {
-    e.preventDefault();
-    try {
-      await letterAPI.createLetter(
-        formData.type,
-        formData.title,
-        formData.content,
-        formData.senderName,
-        formData.recipientName,
-        formData.filePath
-      );
-      fetchLetters();
-      setShowModal(false);
-      setFormData({
-        type: "in",
-        title: "",
-        content: "",
-        senderName: "",
-        recipientName: "",
-        filePath: "",
-      });
-    } catch (err) {
-      setError("Failed to add letter");
-    }
-  };
+  const filtered = letters.filter((l) => {
+    const date = l.created_at ? new Date(l.created_at) : new Date();
+    const matchSearch = l.title?.toLowerCase().includes(search.toLowerCase());
+    const matchYear = filterYear ? date.getFullYear() === parseInt(filterYear) : true;
+    const matchMonth = filterMonth ? date.getMonth() + 1 === parseInt(filterMonth) : true;
+    const matchDept = filterDept ? (l.department || "-") === filterDept : true;
+    const matchType = filterType ? l.type === filterType : true;
+    return matchSearch && matchYear && matchMonth && matchDept && matchType;
+  });
 
-  const handleDeleteLetter = async (id) => {
-    if (window.confirm("Yakin mau hapus?")) {
-      try {
-        await letterAPI.deleteLetter(id);
-        fetchLetters();
-      } catch (err) {
-        setError("Failed to delete letter");
-      }
-    }
-  };
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 2013 + 1 }, (_, i) => 2013 + i);
+  const months = [
+    { value: "1", label: "Jan" },
+    { value: "2", label: "Feb" },
+    { value: "3", label: "Mar" },
+    { value: "4", label: "Apr" },
+    { value: "5", label: "Mei" },
+    { value: "6", label: "Jun" },
+    { value: "7", label: "Jul" },
+    { value: "8", label: "Agu" },
+    { value: "9", label: "Sep" },
+    { value: "10", label: "Okt" },
+    { value: "11", label: "Nov" },
+    { value: "12", label: "Des" },
+  ];
 
   return (
     <div style={styles.container}>
-      {/* TOPBAR */}
-      <div style={styles.topbar}>
+      {/* HEADER */}
+      <div style={styles.header}>
         <h2>📄 Letter Module</h2>
         <div style={styles.profile}>
+          <div style={styles.avatar}>{user.username.charAt(0).toUpperCase()}</div>
           <div>
             <p style={styles.name}>{user.username}</p>
             <p style={styles.role}>{user.role}</p>
           </div>
-          <div style={styles.avatar}>
-            {user.username.charAt(0).toUpperCase()}
-          </div>
         </div>
       </div>
 
-      {/* CONTENT */}
-      <div style={styles.content}>
-        {error && <div style={styles.error}>{error}</div>}
+      {error && <div style={styles.error}>{error}</div>}
 
-        <div style={styles.card}>
-          <div style={styles.cardHeader}>
-            <h3>Daftar Surat</h3>
+      {/* SUMMARY CARD */}
+      <div style={styles.grid}>
+        <SummaryCard title="Total Surat" value={letters.length} gradient="linear-gradient(135deg, #3b82f6, #60a5fa)" icon="📄" />
+        <SummaryCard title="Masuk" value={letters.filter(l => l.type === "in").length} gradient="linear-gradient(135deg, #22c55e, #4ade80)" icon="📥" />
+        <SummaryCard title="Keluar" value={letters.filter(l => l.type === "out").length} gradient="linear-gradient(135deg, #ef4444, #f87171)" icon="📤" />
+      </div>
 
-            {user?.role === "Sekretaris" && (
-              <button style={styles.btnPrimary} onClick={handleOpenModal}>
-                + Tambah Surat
-              </button>
-            )}
-          </div>
+      {/* FILTER + SEARCH BAR */}
+      <div style={styles.filterBar}>
+        <input
+          placeholder="🔍 Cari judul..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={styles.filterInput}
+        />
+        <select value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} style={styles.filterInput}>
+          <option value="">Bulan</option>
+          {months.map((m) => (
+            <option key={m.value} value={m.value}>{m.label}</option>
+          ))}
+        </select>
+        <select value={filterYear} onChange={(e) => setFilterYear(e.target.value)} style={styles.filterInput}>
+          <option value="">Tahun</option>
+          {years.map((y) => (
+            <option key={y} value={y}>{y}</option>
+          ))}
+        </select>
+        <select value={filterDept} onChange={(e) => setFilterDept(e.target.value)} style={styles.filterInput}>
+          <option value="">Departemen</option>
+          {departments.map((d) => (
+            <option key={d} value={d}>{d}</option>
+          ))}
+        </select>
+        <select value={filterType} onChange={(e) => setFilterType(e.target.value)} style={styles.filterInput}>
+          <option value="">Jenis Surat</option>
+          <option value="in">Masuk</option>
+          <option value="out">Keluar</option>
+        </select>
+        <button onClick={resetFilter} style={styles.resetBtn}>Reset</button>
+      </div>
 
-          {loading ? (
-            <p>Loading...</p>
-          ) : letters.length === 0 ? (
-            <p>Tidak ada data surat</p>
-          ) : (
-            <table style={styles.table}>
-              <thead>
+      {/* TABLE */}
+      <div style={styles.card}>
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Judul</th>
+                <th>Jenis</th>
+                <th>Departemen</th>
+                <th>Tanggal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
                 <tr>
-                  <th>No</th>
-                  <th>Jenis</th>
-                  <th>Judul</th>
-                  <th>Pengirim</th>
-                  <th>Penerima</th>
-                  <th>Tanggal</th>
-                  {user?.role === "Sekretaris" && <th>Aksi</th>}
+                  <td colSpan="5" style={{ textAlign: "center" }}>Tidak ada data</td>
                 </tr>
-              </thead>
-
-              <tbody>
-                {letters.map((l) => (
+              ) : (
+                filtered.map((l, idx) => (
                   <tr key={l.id}>
-                    <td>{l.number}</td>
-                    <td>
-                      <span
-                        style={
-                          l.type === "in"
-                            ? styles.badgeBlue
-                            : styles.badgePurple
-                        }
-                      >
-                        {l.type === "in" ? "Masuk" : "Keluar"}
-                      </span>
-                    </td>
+                    <td>{idx + 1}</td>
                     <td>{l.title}</td>
-                    <td>{l.sender_name || "-"}</td>
-                    <td>{l.recipient_name || "-"}</td>
-                    <td>
-                      {new Date(l.created_at).toLocaleDateString()}
-                    </td>
-
-                    {user?.role === "Sekretaris" && (
-                      <td>
-                        <button
-                          style={styles.btnDanger}
-                          onClick={() => handleDeleteLetter(l.id)}
-                        >
-                          Hapus
-                        </button>
-                      </td>
-                    )}
+                    <td>{l.type === "in" ? "Masuk" : "Keluar"}</td>
+                    <td>{l.department || "-"}</td>
+                    <td>{new Date(l.created_at).toLocaleDateString()}</td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
-
-      {/* MODAL */}
-      {showModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalBox}>
-            <h3>Tambah Surat</h3>
-
-            <p>
-              Nomor: <strong>{nextNumber}</strong>
-            </p>
-
-            <form onSubmit={handleAddLetter}>
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                style={styles.input}
-              >
-                <option value="in">Masuk</option>
-                <option value="out">Keluar</option>
-              </select>
-
-              <input
-                name="title"
-                placeholder="Judul"
-                value={formData.title}
-                onChange={handleChange}
-                style={styles.input}
-                required
-              />
-
-              <textarea
-                name="content"
-                placeholder="Isi"
-                value={formData.content}
-                onChange={handleChange}
-                style={styles.input}
-              />
-
-              <input
-                name="senderName"
-                placeholder="Pengirim"
-                value={formData.senderName}
-                onChange={handleChange}
-                style={styles.input}
-              />
-
-              <input
-                name="recipientName"
-                placeholder="Penerima"
-                value={formData.recipientName}
-                onChange={handleChange}
-                style={styles.input}
-              />
-
-              <input
-                name="filePath"
-                placeholder="File Path"
-                value={formData.filePath}
-                onChange={handleChange}
-                style={styles.input}
-              />
-
-              <div style={styles.modalFooter}>
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  style={styles.btnGray}
-                >
-                  Batal
-                </button>
-                <button type="submit" style={styles.btnPrimary}>
-                  Simpan
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
+/* CARD COMPONENT */
+function SummaryCard({ title, value, gradient, icon }) {
+  return (
+    <div style={{ ...styles.summaryCard, background: gradient }}>
+      <p>{icon} {title}</p>
+      <h2>{value}</h2>
+    </div>
+  );
+}
+
+/* STYLE */
 const styles = {
   container: { padding: 30, background: "#f1f5f9", minHeight: "100vh" },
-  topbar: {
-    display: "flex",
-    justifyContent: "space-between",
-    marginBottom: 20,
-  },
+  header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
   profile: { display: "flex", gap: 10, alignItems: "center" },
+  avatar: { width: 40, height: 40, borderRadius: "50%", background: "#3b82f6", color: "#fff", display: "flex", justifyContent: "center", alignItems: "center" },
   name: { margin: 0, fontWeight: "bold" },
   role: { margin: 0, fontSize: 12 },
-  avatar: {
-    width: 35,
-    height: 35,
-    borderRadius: "50%",
-    background: "#3b82f6",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "#fff",
-  },
-  content: {},
-  card: { background: "#fff", padding: 20, borderRadius: 12 },
-  cardHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    marginBottom: 15,
-  },
+
+  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 20, marginBottom: 15 },
+  summaryCard: { padding: 15, borderRadius: 12, color: "#fff" },
+
+  filterBar: { display: "flex", gap: 6, marginBottom: 15, flexWrap: "wrap", alignItems: "center", maxWidth: "100%", overflowX: "auto" },
+  filterInput: { padding: "6px 8px", borderRadius: 8, border: "1px solid #cbd5e1", minWidth: 80, flex: "1 1 auto" },
+  resetBtn: { background: "#ef4444", color: "#fff", border: "none", padding: "6px 12px", borderRadius: 8, cursor: "pointer", flex: "0 0 auto" },
+
+  card: { background: "#fff", padding: 20, borderRadius: 12, overflowX: "auto" },
   table: { width: "100%", borderCollapse: "collapse" },
-  btnPrimary: {
-    background: "#3b82f6",
-    color: "#fff",
-    border: "none",
-    padding: "8px 14px",
-    borderRadius: 8,
-    cursor: "pointer",
-  },
-  btnDanger: {
-    background: "#ef4444",
-    color: "#fff",
-    border: "none",
-    padding: "6px 10px",
-    borderRadius: 6,
-    cursor: "pointer",
-  },
-  btnGray: {
-    background: "#94a3b8",
-    color: "#fff",
-    border: "none",
-    padding: "8px 12px",
-    borderRadius: 6,
-  },
-  badgeBlue: {
-    background: "#dbeafe",
-    padding: "3px 10px",
-    borderRadius: 20,
-  },
-  badgePurple: {
-    background: "#ede9fe",
-    padding: "3px 10px",
-    borderRadius: 20,
-  },
-  modalOverlay: {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.5)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalBox: {
-    background: "#fff",
-    padding: 25,
-    borderRadius: 10,
-    width: 400,
-  },
-  modalFooter: {
-    display: "flex",
-    justifyContent: "flex-end",
-    gap: 10,
-    marginTop: 10,
-  },
-  input: {
-    width: "100%",
-    marginBottom: 10,
-    padding: 8,
-    borderRadius: 6,
-    border: "1px solid #ccc",
-  },
-  error: {
-    background: "#fee2e2",
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 6,
-  },
+  error: { background: "#fee2e2", padding: 10, borderRadius: 8, marginBottom: 10 },
 };
