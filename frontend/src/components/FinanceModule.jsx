@@ -30,30 +30,53 @@ export default function FinanceModule({ user }) {
       currency: 'IDR'
     }).format(val || 0)
 
+  /* 🔥 HITUNG TOTAL */
+  const totalIncome = transactions
+    .filter(t => t.type === 'income')
+    .reduce((a, b) => a + parseFloat(b.amount), 0)
+
+  const totalExpense = transactions
+    .filter(t => t.type === 'expense')
+    .reduce((a, b) => a + parseFloat(b.amount), 0)
+
   return (
     <div style={styles.wrapper}>
-      
-      <h1 style={styles.title}>Finance</h1>
 
-      {/* TAB */}
-      <div style={styles.tabs}>
-        <button
-          style={activeTab === 'transactions' ? styles.activeTab : styles.tab}
-          onClick={() => setActiveTab('transactions')}
-        >
-          Transaksi
-        </button>
+      <h1 style={styles.title}>💰 Keuangan</h1>
 
-        <button
-          style={activeTab === 'categories' ? styles.activeTab : styles.tab}
-          onClick={() => setActiveTab('categories')}
-        >
-          Kategori
-        </button>
+      {/* 🔥 SUMMARY */}
+      <div style={styles.summary}>
+        <div style={styles.card}>
+          <p>Pemasukan</p>
+          <h3 style={{ color: '#22c55e' }}>{formatRupiah(totalIncome)}</h3>
+        </div>
+
+        <div style={styles.card}>
+          <p>Pengeluaran</p>
+          <h3 style={{ color: '#ef4444' }}>{formatRupiah(totalExpense)}</h3>
+        </div>
+
+        <div style={styles.card}>
+          <p>Saldo</p>
+          <h3 style={{ color: '#3b82f6' }}>
+            {formatRupiah(totalIncome - totalExpense)}
+          </h3>
+        </div>
       </div>
 
-      {/* CARD */}
-      <div style={styles.card}>
+      {/* 🔥 TAB */}
+      <div style={styles.tabs}>
+        <Tab active={activeTab === 'transactions'} onClick={() => setActiveTab('transactions')}>
+          Transaksi
+        </Tab>
+
+        <Tab active={activeTab === 'categories'} onClick={() => setActiveTab('categories')}>
+          Kategori
+        </Tab>
+      </div>
+
+      {/* 🔥 TABLE */}
+      <div style={styles.tableCard}>
         {loading ? (
           <p>Loading...</p>
         ) : (
@@ -70,10 +93,11 @@ export default function FinanceModule({ user }) {
 
             <tbody>
               {(activeTab === 'transactions' ? transactions : categories).map((item) => (
-                <tr key={item.id}>
+                <tr key={item.id} style={styles.row}>
                   <td>{item.id}</td>
                   <td>{item.name || item.description}</td>
                   <td>{item.amount ? formatRupiah(item.amount) : '-'}</td>
+
                   <td>
                     <span style={{
                       ...styles.badge,
@@ -82,6 +106,7 @@ export default function FinanceModule({ user }) {
                       {item.type}
                     </span>
                   </td>
+
                   <td>{new Date(item.created_at).toLocaleDateString()}</td>
                 </tr>
               ))}
@@ -94,11 +119,30 @@ export default function FinanceModule({ user }) {
   )
 }
 
+/* 🔥 TAB COMPONENT */
+function Tab({ children, active, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: '10px 20px',
+        borderRadius: 999,
+        border: 'none',
+        cursor: 'pointer',
+        background: active ? '#3b82f6' : '#e2e8f0',
+        color: active ? '#fff' : '#1e293b',
+        transition: '0.2s'
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+/* 🔥 STYLES */
 const styles = {
   wrapper: {
-    padding: 30,
-    background: '#f8fafc',
-    minHeight: '100vh'
+    padding: 30
   },
 
   title: {
@@ -107,28 +151,28 @@ const styles = {
     marginBottom: 20
   },
 
+  summary: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: 20,
+    marginBottom: 20
+  },
+
+  card: {
+    background: '#fff',
+    padding: 20,
+    borderRadius: 15,
+    boxShadow: '0 5px 20px rgba(0,0,0,0.05)',
+    transition: '0.2s'
+  },
+
   tabs: {
     display: 'flex',
     gap: 10,
     marginBottom: 20
   },
 
-  tab: {
-    padding: '10px 20px',
-    background: '#e2e8f0',
-    borderRadius: 10,
-    border: 'none'
-  },
-
-  activeTab: {
-    padding: '10px 20px',
-    background: '#3b82f6',
-    color: '#fff',
-    borderRadius: 10,
-    border: 'none'
-  },
-
-  card: {
+  tableCard: {
     background: '#fff',
     padding: 20,
     borderRadius: 15,
@@ -138,6 +182,10 @@ const styles = {
   table: {
     width: '100%',
     borderCollapse: 'collapse'
+  },
+
+  row: {
+    transition: '0.2s'
   },
 
   badge: {
