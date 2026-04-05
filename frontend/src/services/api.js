@@ -1,152 +1,113 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000"
+import axios from 'axios'
 
-// ==================== TOKEN MANAGEMENT ====================
+const API_BASE_URL = 'http://localhost'
 
-let authToken = null
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
 
-export function setToken(token) {
-  authToken = token
-  console.log("🔐 Token set:", token)
-}
-
-export function getToken() {
-  return authToken
-}
-
-export function clearToken() {
-  authToken = null
-  console.log("🗑️ Token cleared")
-}
-
-function authHeaders() {
-  const headers = {}
-  if (authToken) {
-    headers["Authorization"] = `Bearer ${authToken}`
-    console.log("📤 Authorization header added")
-  } else {
-    console.warn("⚠️ No token available! Cannot authorize request")
+// Add token to requests
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.params = {
+      ...config.params,
+      token,
+    }
   }
-  return headers
-}
+  return config
+})
 
-// Helper: handle response errors
-async function handleResponse(response) {
-  if (response.status === 401) {
-    console.error("❌ 401 Unauthorized - clearing token")
-    clearToken()
-    throw new Error("UNAUTHORIZED")
-  }
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || `Request gagal (${response.status})`)
-  }
-  // 204 No Content
-  if (response.status === 204) return null
-  return response.json()
-}
-
-// ==================== AUTH API ====================
-
-export async function register(userData) {
-  console.log("📝 Registering user:", userData.email)
-  const response = await fetch(`${API_URL}/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(userData),
-  })
-  return handleResponse(response)
-}
-
-export async function login(email, password) {
-  console.log("🔐 Logging in:", email)
-  const response = await fetch(`${API_URL}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  })
-  const data = await handleResponse(response)
-  console.log("✅ Full login response:", data)
-  console.log("✅ access_token field:", data.access_token)
-  console.log("✅ token_type field:", data.token_type)
-  console.log("✅ user field:", data.user)
+// Auth endpoints
+export const authAPI = {
+  register: (username, email, password) =>
+    api.post('/auth/register', { username, email, password }),
   
-  if (!data.access_token) {
-    console.error("❌ ERROR: access_token is undefined!")
-    console.error("❌ Response keys:", Object.keys(data))
-    throw new Error("Server tidak mengembalikan access_token")
-  }
+  login: (username, password) =>
+    api.post('/auth/login', { username, password }),
   
-  setToken(data.access_token)
-  console.log("✅ Token saved, authToken is now:", data.access_token.substring(0, 20) + "...")
-  return data
-}
-export async function getMe() {
-  console.log("👤 Fetching current user")
-  const response = await fetch(`${API_URL}/auth/me`, {
-    headers: authHeaders(),
-  })
-  return handleResponse(response)
-}
-
-// ==================== ITEMS API ====================
-
-export async function fetchItems(search = "", skip = 0, limit = 20) {
-  console.log("📋 Fetching items with search:", search)
-  const params = new URLSearchParams()
-  if (search) params.append("search", search)
-  params.append("skip", skip)
-  params.append("limit", limit)
-
-  const response = await fetch(`${API_URL}/items?${params}`, {
-    headers: authHeaders(),
-  })
-  return handleResponse(response)
+  getMe: () =>
+    api.get('/auth/me'),
+  
+  // Ketua only
+  listUsers: () =>
+    api.get('/auth/users'),
+  
+  createUser: (username, email, password, role) =>
+    api.post('/auth/users', { username, email, password }, { params: { role } }),
+  
+  updateUser: (userId, data) =>
+    api.put(`/auth/users/${userId}`, data),
+  
+  deleteUser: (userId) =>
+    api.delete(`/auth/users/${userId}`),
 }
 
-export async function createItem(itemData) {
-  console.log("➕ Creating item:", itemData.name)
-  const response = await fetch(`${API_URL}/items`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...authHeaders(),
-    },
-    body: JSON.stringify(itemData),
-  })
-  return handleResponse(response)
+// Finance endpoints
+export const financeAPI = {
+  // Categories
+  getCategories: () =>
+    api.get('/finance/categories'),
+  
+  createCategory: (name, type) =>
+    api.post('/finance/categories', { name, type }),
+  
+  updateCategory: (categoryId, data) =>
+    api.put(`/finance/categories/${categoryId}`, data),
+  
+  deleteCategory: (categoryId) =>
+    api.delete(`/finance/categories/${categoryId}`),
+  
+  // Transactions
+  getTransactions: () =>
+    api.get('/finance/transactions'),
+  
+  getTransaction: (transactionId) =>
+    api.get(`/finance/transactions/${transactionId}`),
+  
+  createTransaction: (categoryId, amount, description, type) =>
+    api.post('/finance/transactions', { category_id: categoryId, amount, description, type }),
+  
+  updateTransaction: (transactionId, data) =>
+    api.put(`/finance/transactions/${transactionId}`, data),
+  
+  deleteTransaction: (transactionId) =>
+    api.delete(`/finance/transactions/${transactionId}`),
+  
+  // Cashflow
+  getCashflow: () =>
+    api.get('/finance/cashflow'),
 }
 
-export async function updateItem(id, itemData) {
-  console.log("✏️ Updating item:", id)
-  const response = await fetch(`${API_URL}/items/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      ...authHeaders(),
-    },
-    body: JSON.stringify(itemData),
-  })
-  return handleResponse(response)
+// Letter endpoints
+export const letterAPI = {
+  getLetters: () =>
+    api.get('/letter/letters'),
+  
+  getLetter: (letterId) =>
+    api.get(`/letter/letters/${letterId}`),
+  
+  createLetter: (type, title, content, senderName, recipientName, filePath) =>
+    api.post('/letter/letters', {
+      type,
+      title,
+      content,
+      sender_name: senderName,
+      recipient_name: recipientName,
+      file_path: filePath,
+    }),
+  
+  updateLetter: (letterId, data) =>
+    api.put(`/letter/letters/${letterId}`, data),
+  
+  deleteLetter: (letterId) =>
+    api.delete(`/letter/letters/${letterId}`),
+  
+  getNextNumber: (type = 'in') =>
+    api.get('/letter/letters/next-number', { params: { type } }),
 }
 
-export async function deleteItem(id) {
-  console.log("🗑️ Deleting item:", id)
-  const response = await fetch(`${API_URL}/items/${id}`, {
-    method: "DELETE",
-    headers: authHeaders(),
-  })
-  return handleResponse(response)
-}
-
-export async function checkHealth() {
-  console.log("💚 Checking health")
-  try {
-    const response = await fetch(`${API_URL}/health`)
-    const data = await response.json()
-    console.log("💚 Health check:", data.status)
-    return data.status === "healthy"
-  } catch {
-    console.error("❌ Health check failed")
-    return false
-  }
-}
+export default api

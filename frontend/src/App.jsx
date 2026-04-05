@@ -1,242 +1,79 @@
-import { useState, useEffect, useCallback } from "react"
-import Header from "./components/Header"
-import SearchBar from "./components/SearchBar"
-import ItemForm from "./components/ItemForm"
-import ItemList from "./components/ItemList"
-import LoginPage from "./components/LoginPage"
-import {
-  fetchItems, createItem, updateItem, deleteItem,
-  checkHealth, login, register, setToken, clearToken,
-} from "./services/api"
+import { useState, useEffect } from 'react'
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'
+import { authAPI } from './services/api'
+import Login from './components/Login'
+import Dashboard from './components/Dashboard'
+import FinanceModule from './components/FinanceModule'
+import LetterModule from './components/LetterModule'
+import UserManagement from './components/UserManagement'
+import Navigation from './components/Navigation'
 
 function App() {
-  // ==================== AUTH STATE ====================
   const [user, setUser] = useState(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-
-  // ==================== APP STATE ====================
-  const [items, setItems] = useState([])
-  const [totalItems, setTotalItems] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [isConnected, setIsConnected] = useState(false)
-  const [editingItem, setEditingItem] = useState(null)
-  const [searchQuery, setSearchQuery] = useState("")
 
-  // ==================== TAMBAHAN ====================
-  const [notification, setNotification] = useState(null)
-  const [actionLoading, setActionLoading] = useState(false)
-
-  const showNotification = (type, message) => {
-    setNotification({ type, message })
-    setTimeout(() => setNotification(null), 3000)
-  }
-
-  // ==================== LOAD DATA ====================
-  const loadItems = useCallback(async (search = "") => {
-    setLoading(true)
-    try {
-      const data = await fetchItems(search)
-      setItems(data.items)
-      setTotalItems(data.total)
-    } catch (err) {
-      if (err.message === "UNAUTHORIZED") {
-        handleLogout()
-      }
-      console.error("Error loading items:", err)
-    } finally {
+  useEffect(() => {
+    // Check if user is logged in
+    const token = localStorage.getItem('token')
+    if (token) {
+      authAPI.getMe()
+        .then((response) => {
+          setUser(response.data)
+        })
+        .catch(() => {
+          localStorage.removeItem('token')
+          setUser(null)
+        })
+        .finally(() => {
+          setLoading(false)
+        })
+    } else {
       setLoading(false)
     }
   }, [])
 
-  useEffect(() => {
-    checkHealth().then(setIsConnected)
-  }, [])
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadItems()
-    }
-  }, [isAuthenticated, loadItems])
-
-  // ==================== AUTH ====================
-
-  const handleLogin = async (email, password) => {
-    const data = await login(email, password)
-    setUser(data.user)
-    setIsAuthenticated(true)
-    showNotification("success", "Login berhasil")
-  }
-
-  const handleRegister = async (userData) => {
-    await register(userData)
-    await handleLogin(userData.email, userData.password)
-    showNotification("success", "Register berhasil")
+  const handleLoginSuccess = (data) => {
+    const { access_token, user: userData } = data
+    localStorage.setItem('token', access_token)
+    setUser(userData)
   }
 
   const handleLogout = () => {
-    clearToken()
+    localStorage.removeItem('token')
     setUser(null)
-    setIsAuthenticated(false)
-    setItems([])
-    setTotalItems(0)
-    setEditingItem(null)
-    setSearchQuery("")
-    showNotification("success", "Logout berhasil")
   }
 
-  // ==================== ITEM ====================
-
-  const handleSubmit = async (itemData, editId) => {
-    setActionLoading(true)
-    try {
-      if (editId) {
-        await updateItem(editId, itemData)
-        setEditingItem(null)
-        showNotification("success", "Data berhasil diupdate")
-      } else {
-        await createItem(itemData)
-        showNotification("success", "Data berhasil ditambahkan")
-      }
-      loadItems(searchQuery)
-    } catch (err) {
-      if (err.message === "UNAUTHORIZED") handleLogout()
-      else showNotification("error", err.message)
-    } finally {
-      setActionLoading(false)
-    }
-  }
-
-  const handleEdit = (item) => {
-    setEditingItem(item)
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
-
-  const handleDelete = async (id) => {
-    const item = items.find((i) => i.id === id)
-    if (!window.confirm(`Yakin ingin menghapus "${item?.name}"?`)) return
-
-    setActionLoading(true)
-    try {
-      await deleteItem(id)
-      showNotification("success", "Data berhasil dihapus")
-      loadItems(searchQuery)
-    } catch (err) {
-      if (err.message === "UNAUTHORIZED") handleLogout()
-      else showNotification("error", "Gagal menghapus: " + err.message)
-    } finally {
-      setActionLoading(false)
-    }
-  }
-
-  const handleSearch = (query) => {
-    setSearchQuery(query)
-    loadItems(query)
-  }
-
-  // ==================== RENDER ====================
-
-  if (!isAuthenticated) {
-    return <LoginPage onLogin={handleLogin} onRegister={handleRegister} />
+  if (loading) {
+    return <div className="container"><p>Loading...</p></div>
   }
 
   return (
-    <div style={styles.app}>
-      <div style={styles.container}>
-
-        {/* ===== NOTIF (STABIL, TIDAK FLOATING) ===== */}
-        {notification && (
-          <div
-            style={{
-              ...styles.notification,
-              backgroundColor:
-                notification.type === "success" ? "#d4edda" : "#f8d7da",
-              color:
-                notification.type === "success" ? "#155724" : "#721c24",
-            }}
-          >
-            {notification.message}
-          </div>
-        )}
-
-        <Header
-          totalItems={totalItems}
-          isConnected={isConnected}
-          user={user}
-          onLogout={handleLogout}
+    <Router>
+      {user && <Navigation user={user} onLogout={handleLogout} />}
+      <Routes>
+        <Route
+          path="/"
+          element={user ? <Dashboard user={user} /> : <Login onLoginSuccess={handleLoginSuccess} />}
         />
-
-        <ItemForm
-          onSubmit={handleSubmit}
-          editingItem={editingItem}
-          onCancelEdit={() => setEditingItem(null)}
+        <Route
+          path="/login"
+          element={<Login onLoginSuccess={handleLoginSuccess} />}
         />
-
-        <SearchBar onSearch={handleSearch} />
-
-        <ItemList
-          items={items}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          loading={loading}
+        <Route
+          path="/finance"
+          element={user ? <FinanceModule user={user} /> : <Login onLoginSuccess={handleLoginSuccess} />}
         />
-      </div>
-
-      {/* ===== LOADING ===== */}
-      {actionLoading && (
-        <div style={styles.overlay}>
-          <div style={styles.spinner}></div>
-        </div>
-      )}
-    </div>
+        <Route
+          path="/letter"
+          element={user ? <LetterModule user={user} /> : <Login onLoginSuccess={handleLoginSuccess} />}
+        />
+        <Route
+          path="/users"
+          element={user && user.role === 'Ketua' ? <UserManagement user={user} /> : <div className="container"><p>Access denied</p></div>}
+        />
+      </Routes>
+    </Router>
   )
-}
-
-const styles = {
-  app: {
-    minHeight: "100vh",
-    backgroundColor: "#f0f2f5",
-    padding: "2rem",
-    fontFamily: "'Segoe UI', Arial, sans-serif",
-  },
-
-  container: {
-    maxWidth: "900px",
-    margin: "0 auto",
-  },
-
-  // ✅ NOTIF CLEAN (NO POSITION BUG)
-  notification: {
-    width: "100%",
-    padding: "14px 20px",
-    borderRadius: "10px",
-    textAlign: "center",
-    fontWeight: "500",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-    marginBottom: "16px",
-  },
-
-  // LOADING
-  overlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(0,0,0,0.3)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
-  },
-
-  spinner: {
-    width: "50px",
-    height: "50px",
-    border: "5px solid #ccc",
-    borderTop: "5px solid #333",
-    borderRadius: "50%",
-    animation: "spin 1s linear infinite",
-  },
 }
 
 export default App
