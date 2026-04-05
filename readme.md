@@ -27,9 +27,92 @@ Aplikasi ini ditujukan bagi seluruh pengurus HMSI untuk mendukung transparansi, 
 
 ## 🏗️ Architecture
 
+
+### High-Level Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     BROWSER / CLIENT                         │
+│                  (Vite React Frontend)                       │
+└────────────────────────┬────────────────────────────────────┘
+                         │ HTTP Requests
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   NGINX GATEWAY (Port 80)                    │
+│              Reverse Proxy & Load Balancing                  │
+├──────────┬──────────┬──────────┬────────────────────────────┤
+│          │          │          │                            │
+▼          ▼          ▼          ▼                            ▼
+┌────────────┐ ┌────────────┐ ┌────────────┐         ┌──────────────┐
+│ Auth Srv   │ │ Finance    │ │ Letter     │         │ Frontend     │
+│ :8000      │ │ Srv :8000  │ │ Srv :8000  │         │ :5173        │
+└─────┬──────┘ └─────┬──────┘ └─────┬──────┘         └──────────────┘
+      │              │              │
+      └──────────────┴──────────────┘
+              │ Inter-service API calls
+              │ (verify token)
+              ▼
+         ┌──────────────────┐
+         │ Auth Service     │
+         │ /verify endpoint │
+         └──────────────────┘
+              │
+      ┌───────┴───────┬───────────┬─────────────┐
+      ▼               ▼           ▼             ▼
+┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
+│ auth_db  │  │finance_db│  │letter_db │  │          │
+│ Users    │  │ Cat/Txns │  │ Letters  │  │  (more)  │
+│          │  │          │  │ Counters │  │          │
+└──────────┘  └──────────┘  └──────────┘  └──────────┘
+PostgreSQL Databases (3 separate instances)
 ```
 
-[React Frontend] <--HTTP--> [FastAPI Backend] <--SQL--> [PostgreSQL]
+### Service Communication
+
+**Authentication Flow**
+
+```
+1. Client Submits Credentials
+   POST /auth/login {username, password}
+         │
+         ▼
+   ┌──────────────────┐
+   │ Auth Service     │
+   │ - Verify creds   │
+   │ - Create JWT     │
+   └──────────────────┘
+         │
+         ▼
+   Return: {
+     access_token: "JWT_TOKEN",
+     token_type: "bearer",
+     user: {...}
+   }
+
+2. Client Stores Token & Sends with Requests
+   GET /finance/transactions?token=JWT_TOKEN
+         │
+         ▼
+   ┌──────────────────────┐
+   │ Finance Service      │
+   │ 1. Extract token     │
+   │ 2. Call Auth verify  │
+   │    /auth/verify?     │
+   │    token=JWT_TOKEN   │
+   └──────────────────────┘
+         │
+         ▼
+   ┌──────────────────┐
+   │ Auth Service     │
+   │ - Decode JWT     │
+   │ - Return user    │
+   │   data & role    │
+   └──────────────────┘
+         │
+         ▼
+   Finance Service:
+   - Check user role
+   - Return transactions
 ```
 
 *(Diagram ini akan berkembang setiap minggu)*
