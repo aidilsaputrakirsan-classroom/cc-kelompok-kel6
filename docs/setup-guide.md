@@ -1,107 +1,116 @@
-Dokumen ini menjelaskan langkah-langkah untuk menjalankan aplikasi Cloud App dari awal hingga aplikasi dapat diakses melalui browser. Aplikasi ini merupakan aplikasi full-stack yang terdiri dari backend menggunakan FastAPI dan PostgreSQL serta frontend menggunakan React.
+Dokumen ini menjelaskan langkah-langkah untuk menjalankan aplikasi SIKASI dari awal hingga aplikasi dapat diakses melalui browser. Aplikasi ini merupakan aplikasi berbasis web yang digunakan untuk mendukung pengelolaan keuangan dan administrasi HMSI, dengan frontend menggunakan React serta backend yang dibangun dalam beberapa service yang saling terintegrasi.
 
 Panduan ini ditujukan agar siapa pun yang baru pertama kali melihat repository ini tetap dapat menjalankan aplikasi tanpa kebingungan.
 
 ### 1. Persiapan Environment
 
-Sebelum menjalankan aplikasi, pastikan beberapa software berikut sudah terinstall pada komputer:
+Sebelum menjalankan aplikasi, pastikan beberapa software berikut sudah terpasang pada komputer:
 
-Git untuk mengunduh repository
-Python 3.10 atau lebih baru untuk menjalankan backend
-Node.js dan npm untuk menjalankan frontend React
-PostgreSQL sebagai database aplikasi
+- Git untuk mengunduh repository project
+- Docker Desktop untuk menjalankan aplikasi dalam container
+- Docker Compose untuk menjalankan seluruh service secara bersamaan
 
-Semua software tersebut digunakan karena backend aplikasi dibangun dengan Python dan FastAPI, sementara frontend menggunakan React yang berjalan melalui Node.js.
+Software tersebut diperlukan karena aplikasi SIKASI pada repository ini dijalankan menggunakan beberapa service yang saling terhubung, sehingga proses menjalankannya akan lebih mudah menggunakan Docker.
 
 ### 2. Mengunduh Repository Project
 
 Langkah pertama adalah mengunduh repository project dari GitHub ke komputer lokal menggunakan Git.
 
-Masuk ke terminal lalu jalankan proses clone repository. Setelah repository berhasil diunduh, masuk ke folder project utama.
+Masuk ke terminal, lalu jalankan proses clone repository. Setelah repository berhasil diunduh, masuk ke folder project utama.
 
+```
+git clone <url-repository>
+cd <nama-folder-project>
+``` 
 Struktur project secara umum akan terlihat seperti berikut:
 
-```backend/ berisi kode API FastAPI
-frontend/ berisi aplikasi React
-docs/ berisi dokumentasi project
-README.md berisi informasi umum repository
+```
+frontend/                    berisi aplikasi React
+services/
+  auth-service/              berisi service autentikasi dan user
+  finance-service/           berisi service keuangan
+  letter-service/            berisi service surat
+  gateway/                   berisi konfigurasi gateway
+docker-compose.example.yml   berisi konfigurasi untuk menjalankan seluruh service
+docs/                        berisi dokumentasi project
+```
+Pemisahan folder ini menunjukkan bahwa SIKASI dibangun dengan struktur beberapa service backend yang dipisahkan berdasarkan fungsi masing-masing.
+
+### 3. Menyiapkan File Environment
+
+Sebelum aplikasi dijalankan, beberapa service memerlukan file konfigurasi environment.
+
+Pada repository ini sudah tersedia file contoh environment untuk masing-masing service. File tersebut perlu disalin dari .env.example menjadi .env.
+
+Contohnya adalah sebagai berikut:
+```
+cp services/auth-service/.env.example services/auth-service/.env
+cp services/finance-service/.env.example services/finance-service/.env
+cp services/letter-service/.env.example services/letter-service/.env
 ```
 
-Pemisahan folder ini mengikuti konsep client-server architecture, di mana frontend dan backend dikembangkan secara terpisah.
+File environment ini digunakan untuk menyimpan konfigurasi penting seperti koneksi database, secret key, dan pengaturan service lainnya.
 
-### 3. Menyiapkan Database PostgreSQL
+Pastikan isi file .env sudah sesuai dengan kebutuhan agar seluruh service dapat saling terhubung dengan benar.
 
-Aplikasi ini menggunakan PostgreSQL sebagai database untuk menyimpan data.
+### 4. Menjalankan Aplikasi
 
-Setelah PostgreSQL terinstall, buat sebuah database baru yang akan digunakan oleh aplikasi. Database ini nantinya akan dihubungkan dengan backend menggunakan SQLAlchemy.
+Setelah konfigurasi environment selesai, langkah berikutnya adalah menjalankan seluruh service aplikasi.
 
-Pastikan PostgreSQL sedang berjalan di komputer dan pengguna mengetahui username serta password yang digunakan saat instalasi.
+Repository ini menyediakan file docker-compose.example.yml yang digunakan untuk menjalankan semua komponen aplikasi secara bersamaan.
 
-Database yang telah dibuat akan digunakan oleh backend untuk menyimpan data seperti item yang dibuat melalui API.
-
-### 4. Menjalankan Backend API
-
-Setelah database siap, langkah berikutnya adalah menjalankan backend.
-
-Masuk ke folder backend di dalam project. Backend ini dibangun menggunakan FastAPI, sebuah framework Python untuk membuat REST API.
-
-Sebelum menjalankan aplikasi, install terlebih dahulu seluruh dependency Python yang diperlukan oleh project. Dependency tersebut sudah tercantum dalam file requirements.txt.
-
-Backend kemudian dijalankan menggunakan Uvicorn, yaitu ASGI server yang digunakan untuk menjalankan aplikasi FastAPI.
-
+Jalankan perintah berikut pada terminal:
 ```
-Jika backend berhasil dijalankan, maka API akan tersedia pada alamat http://localhost:8000
-FastAPI juga secara otomatis menyediakan dokumentasi API berbasis Swagger UI yang dapat diakses melalui http://localhost:8000/docs
+docker compose -f docker-compose.example.yml up --build
 ```
 
-Melalui halaman ini, semua endpoint API dapat diuji secara langsung dari browser.
+Perintah tersebut akan membangun dan menjalankan beberapa bagian aplikasi, seperti frontend, service autentikasi, service keuangan, service surat, database, dan gateway.
 
-### 5. Menjalankan Frontend React
+Jika proses berjalan dengan baik, seluruh container akan aktif dan aplikasi siap diakses melalui browser.
 
-Setelah backend berhasil berjalan, langkah berikutnya adalah menjalankan frontend.
+### 5. Akses Aplikasi melalui Browser
 
-Frontend project ini dibangun menggunakan React dengan tooling Vite. React digunakan untuk membangun antarmuka pengguna yang dapat berkomunikasi dengan backend melalui HTTP request.
+Setelah seluruh service berhasil dijalankan, aplikasi dapat diakses melalui browser.
 
-Masuk ke folder frontend lalu install seluruh dependency JavaScript yang dibutuhkan oleh project menggunakan npm.
-
-Setelah proses instalasi selesai, jalankan development server React.
+Secara umum, aplikasi akan tersedia pada alamat:
 ```
-Server development React biasanya akan berjalan pada alamat http://localhost:5173
+http://localhost
 ```
+Frontend SIKASI akan ditampilkan melalui gateway, kemudian gateway akan meneruskan request ke service yang sesuai.
 
-Frontend ini akan melakukan request ke backend API yang berjalan pada port 8000 untuk mengambil dan memanipulasi data.
+Sebagai contoh, request yang berhubungan dengan autentikasi akan diarahkan ke auth-service, request keuangan akan diarahkan ke finance-service, dan request surat akan diarahkan ke letter-service.
 
-### 6. Integrasi Frontend dan Backend
+### 6. Fitur yang Dapat Dicoba
 
-Setelah kedua server berjalan, aplikasi full-stack dapat diakses melalui browser.
+Setelah aplikasi berhasil dibuka, beberapa fitur utama yang dapat dicoba antara lain:
 
-Frontend React akan mengirim request ke backend FastAPI untuk melakukan operasi seperti mengambil data, menambah data, memperbarui data, atau menghapus data.
+login dan registrasi pengguna
+melihat dashboard ringkasan keuangan
+mengakses modul transaksi keuangan
+mengakses modul surat
+mengelola data pengguna sesuai role yang dimiliki
 
-Backend kemudian akan memproses request tersebut dan berinteraksi dengan database PostgreSQL untuk membaca atau menyimpan data.
-
-Hasil dari proses tersebut akan dikirim kembali ke frontend dalam bentuk response JSON, kemudian ditampilkan pada antarmuka pengguna.
-
-Dengan demikian, alur kerja aplikasi menjadi:
-```
-User melakukan aksi pada frontend
-Frontend mengirim request ke backend API
-Backend memproses request dan mengakses database
-Backend mengirim response ke frontend
-Frontend menampilkan hasil ke user
-```
+Melalui fitur-fitur tersebut, pengguna dapat melihat bahwa SIKASI digunakan untuk membantu proses keuangan dan administrasi organisasi secara terintegrasi.
 
 ### 7. Verifikasi Aplikasi Berjalan
 
 Untuk memastikan aplikasi berjalan dengan benar, lakukan beberapa pengecekan berikut:
-```
-Backend API dapat diakses di http://localhost:8000
-Dokumentasi API Swagger muncul di http://localhost:8000/docs
-Frontend React dapat dibuka di http://localhost:5173
-Frontend dapat mengambil data dari backend tanpa error
-```
-Jika semua langkah tersebut berhasil, maka aplikasi full-stack telah berjalan dengan sukses.
 
-### 8. Ringkasan
+halaman utama aplikasi dapat dibuka di browser
+halaman login tampil dengan baik
+proses login atau registrasi dapat dilakukan
+menu dashboard dapat diakses
+modul keuangan dan surat dapat dibuka tanpa error
 
-Untuk menjalankan aplikasi secara keseluruhan, backend dan frontend harus berjalan secara bersamaan pada dua terminal berbeda.
-Backend bertugas menyediakan API dan mengelola koneksi ke database PostgreSQL, sedangkan frontend bertugas menampilkan antarmuka pengguna dan berkomunikasi dengan backend melalui HTTP request. Dengan mengikuti langkah-langkah pada panduan ini, aplikasi Cloud App dapat dijalankan dari awal hingga siap digunakan oleh pengguna.
+Jika semua langkah tersebut berhasil, maka aplikasi SIKASI telah berjalan dengan baik pada environment lokal.
+
+### 8. Menghentikan Aplikasi
+
+Setelah selesai digunakan, seluruh service aplikasi dapat dihentikan dengan perintah berikut:
+```
+docker compose -f docker-compose.example.yml down
+```
+Perintah ini akan menghentikan seluruh container yang sebelumnya dijalankan.
+
+Untuk menjalankan aplikasi SIKASI, pengguna perlu menyiapkan environment, mengunduh repository, menyalin file environment, lalu menjalankan seluruh service menggunakan Docker Compose. Setelah itu, aplikasi dapat diakses melalui browser dan digunakan untuk mendukung pengelolaan keuangan serta administrasi organisasi.
+Dengan mengikuti langkah-langkah pada panduan ini, siapa pun yang baru pertama kali melihat repository SIKASI tetap dapat menjalankan aplikasi tanpa kebingungan.
