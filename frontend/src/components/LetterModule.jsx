@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { letterAPI } from "../services/api";
-import Navigation from "./Navigation";
 
-export default function LetterModule({ user, onLogout }) {
+export default function LetterModule({ user }) {
   const [letters, setLetters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -43,10 +42,10 @@ export default function LetterModule({ user, onLogout }) {
     try {
       const response = await letterAPI.getNextNumber(formData.type);
       setNextNumber(response.data.number);
+      setShowModal(true);
     } catch (err) {
       setError("Failed to get next letter number");
     }
-    setShowModal(true);
   };
 
   const handleAddLetter = async (e) => {
@@ -58,7 +57,7 @@ export default function LetterModule({ user, onLogout }) {
         formData.content,
         formData.senderName,
         formData.recipientName,
-        formData.filePath,
+        formData.filePath
       );
       fetchLetters();
       setShowModal(false);
@@ -75,10 +74,10 @@ export default function LetterModule({ user, onLogout }) {
     }
   };
 
-  const handleDeleteLetter = async (letterId) => {
-    if (window.confirm("Are you sure?")) {
+  const handleDeleteLetter = async (id) => {
+    if (window.confirm("Yakin mau hapus?")) {
       try {
-        await letterAPI.deleteLetter(letterId);
+        await letterAPI.deleteLetter(id);
         fetchLetters();
       } catch (err) {
         setError("Failed to delete letter");
@@ -87,181 +86,166 @@ export default function LetterModule({ user, onLogout }) {
   };
 
   return (
-    <div style={styles.layout}>
-      <Navigation user={user} onLogout={onLogout} />
-
-      <main style={styles.main}>
-        {/* TOPBAR */}
-        <div style={styles.topbar}>
-          <h2 style={styles.topbarTitle}>Letter Module</h2>
-          <div style={styles.profile}>
-            <div>
-              <p style={styles.name}>{user.username}</p>
-              <p style={styles.role}>{user.role}</p>
-            </div>
-            <div style={styles.avatar}>
-              {user.username.charAt(0).toUpperCase()}
-            </div>
+    <div style={styles.container}>
+      {/* TOPBAR */}
+      <div style={styles.topbar}>
+        <h2>📄 Letter Module</h2>
+        <div style={styles.profile}>
+          <div>
+            <p style={styles.name}>{user.username}</p>
+            <p style={styles.role}>{user.role}</p>
+          </div>
+          <div style={styles.avatar}>
+            {user.username.charAt(0).toUpperCase()}
           </div>
         </div>
+      </div>
 
-        {/* CONTENT */}
-        <div style={styles.content}>
-          {error && <div style={styles.error}>{error}</div>}
+      {/* CONTENT */}
+      <div style={styles.content}>
+        {error && <div style={styles.error}>{error}</div>}
 
-          <div style={styles.card}>
-            <div style={styles.cardHeader}>
-              <h2 style={{ margin: 0 }}>Letters</h2>
-              {user?.role === "Sekretaris" && (
-                <button style={styles.btnPrimary} onClick={handleOpenModal}>
-                  + Add Letter
-                </button>
-              )}
-            </div>
+        <div style={styles.card}>
+          <div style={styles.cardHeader}>
+            <h3>Daftar Surat</h3>
 
-            {loading ? (
-              <p>Loading...</p>
-            ) : letters.length === 0 ? (
-              <p>No letters</p>
-            ) : (
-              <table style={styles.table}>
-                <thead>
-                  <tr style={styles.thead}>
-                    <th style={styles.th}>Number</th>
-                    <th style={styles.th}>Type</th>
-                    <th style={styles.th}>Title</th>
-                    <th style={styles.th}>Sender</th>
-                    <th style={styles.th}>Recipient</th>
-                    <th style={styles.th}>Created At</th>
-                    {user?.role === "Sekretaris" && (
-                      <th style={styles.th}>Action</th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {letters.map((letter) => (
-                    <tr key={letter.id} style={styles.tr}>
-                      <td style={styles.td}>{letter.number}</td>
-                      <td style={styles.td}>
-                        <span
-                          style={
-                            letter.type === "in"
-                              ? styles.badgeBlue
-                              : styles.badgePurple
-                          }
-                        >
-                          {letter.type === "in" ? "Incoming" : "Outgoing"}
-                        </span>
-                      </td>
-                      <td style={styles.td}>{letter.title}</td>
-                      <td style={styles.td}>{letter.sender_name || "-"}</td>
-                      <td style={styles.td}>{letter.recipient_name || "-"}</td>
-                      <td style={styles.td}>
-                        {new Date(letter.created_at).toLocaleDateString()}
-                      </td>
-                      {user?.role === "Sekretaris" && (
-                        <td style={styles.td}>
-                          <button
-                            style={styles.btnDanger}
-                            onClick={() => handleDeleteLetter(letter.id)}
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {user?.role === "Sekretaris" && (
+              <button style={styles.btnPrimary} onClick={handleOpenModal}>
+                + Tambah Surat
+              </button>
             )}
           </div>
+
+          {loading ? (
+            <p>Loading...</p>
+          ) : letters.length === 0 ? (
+            <p>Tidak ada data surat</p>
+          ) : (
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Jenis</th>
+                  <th>Judul</th>
+                  <th>Pengirim</th>
+                  <th>Penerima</th>
+                  <th>Tanggal</th>
+                  {user?.role === "Sekretaris" && <th>Aksi</th>}
+                </tr>
+              </thead>
+
+              <tbody>
+                {letters.map((l) => (
+                  <tr key={l.id}>
+                    <td>{l.number}</td>
+                    <td>
+                      <span
+                        style={
+                          l.type === "in"
+                            ? styles.badgeBlue
+                            : styles.badgePurple
+                        }
+                      >
+                        {l.type === "in" ? "Masuk" : "Keluar"}
+                      </span>
+                    </td>
+                    <td>{l.title}</td>
+                    <td>{l.sender_name || "-"}</td>
+                    <td>{l.recipient_name || "-"}</td>
+                    <td>
+                      {new Date(l.created_at).toLocaleDateString()}
+                    </td>
+
+                    {user?.role === "Sekretaris" && (
+                      <td>
+                        <button
+                          style={styles.btnDanger}
+                          onClick={() => handleDeleteLetter(l.id)}
+                        >
+                          Hapus
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
-      </main>
+      </div>
 
       {/* MODAL */}
       {showModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalBox}>
-            <h2 style={styles.modalTitle}>Add Letter</h2>
+            <h3>Tambah Surat</h3>
 
-            <div style={styles.numberBadge}>
-              <span style={{ opacity: 0.7 }}>Letter Number:</span>
-              <strong style={{ color: "#1e3a8a" }}> {nextNumber}</strong>
-            </div>
+            <p>
+              Nomor: <strong>{nextNumber}</strong>
+            </p>
 
             <form onSubmit={handleAddLetter}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Type</label>
-                <select
-                  style={styles.input}
-                  name="type"
-                  value={formData.type}
-                  onChange={handleChange}
-                >
-                  <option value="in">Incoming</option>
-                  <option value="out">Outgoing</option>
-                </select>
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Title</label>
-                <input
-                  style={styles.input}
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Content</label>
-                <textarea
-                  style={{ ...styles.input, height: 80 }}
-                  name="content"
-                  value={formData.content}
-                  onChange={handleChange}
-                />
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Sender Name</label>
-                <input
-                  style={styles.input}
-                  type="text"
-                  name="senderName"
-                  value={formData.senderName}
-                  onChange={handleChange}
-                />
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Recipient Name</label>
-                <input
-                  style={styles.input}
-                  type="text"
-                  name="recipientName"
-                  value={formData.recipientName}
-                  onChange={handleChange}
-                />
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>File Path</label>
-                <input
-                  style={styles.input}
-                  type="text"
-                  name="filePath"
-                  value={formData.filePath}
-                  onChange={handleChange}
-                />
-              </div>
+              <select
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+                style={styles.input}
+              >
+                <option value="in">Masuk</option>
+                <option value="out">Keluar</option>
+              </select>
+
+              <input
+                name="title"
+                placeholder="Judul"
+                value={formData.title}
+                onChange={handleChange}
+                style={styles.input}
+                required
+              />
+
+              <textarea
+                name="content"
+                placeholder="Isi"
+                value={formData.content}
+                onChange={handleChange}
+                style={styles.input}
+              />
+
+              <input
+                name="senderName"
+                placeholder="Pengirim"
+                value={formData.senderName}
+                onChange={handleChange}
+                style={styles.input}
+              />
+
+              <input
+                name="recipientName"
+                placeholder="Penerima"
+                value={formData.recipientName}
+                onChange={handleChange}
+                style={styles.input}
+              />
+
+              <input
+                name="filePath"
+                placeholder="File Path"
+                value={formData.filePath}
+                onChange={handleChange}
+                style={styles.input}
+              />
+
               <div style={styles.modalFooter}>
                 <button
                   type="button"
-                  style={styles.btnGray}
                   onClick={() => setShowModal(false)}
+                  style={styles.btnGray}
                 >
-                  Cancel
+                  Batal
                 </button>
                 <button type="submit" style={styles.btnPrimary}>
-                  Save
+                  Simpan
                 </button>
               </div>
             </form>
@@ -273,21 +257,15 @@ export default function LetterModule({ user, onLogout }) {
 }
 
 const styles = {
-  layout: { display: "flex", minHeight: "100vh", background: "#f1f5f9" },
-  main: { flex: 1, marginLeft: 260 },
+  container: { padding: 30, background: "#f1f5f9", minHeight: "100vh" },
   topbar: {
-    height: 70,
-    background: "#1e3a8a",
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
-    padding: "0 20px",
-    color: "#fff",
+    marginBottom: 20,
   },
-  topbarTitle: { margin: 0, color: "#fff" },
   profile: { display: "flex", gap: 10, alignItems: "center" },
   name: { margin: 0, fontWeight: "bold" },
-  role: { margin: 0, fontSize: 12, opacity: 0.7 },
+  role: { margin: 0, fontSize: 12 },
   avatar: {
     width: 35,
     height: 35,
@@ -296,114 +274,80 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontWeight: "bold",
+    color: "#fff",
   },
-  content: { padding: 30 },
-  card: { background: "#fff", borderRadius: 15, padding: 20 },
+  content: {},
+  card: { background: "#fff", padding: 20, borderRadius: 12 },
   cardHeader: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 15,
   },
   table: { width: "100%", borderCollapse: "collapse" },
-  thead: { background: "#f1f5f9" },
-  th: {
-    padding: "12px 16px",
-    textAlign: "left",
-    fontWeight: 600,
-    color: "#475569",
-  },
-  tr: { borderBottom: "1px solid #f1f5f9" },
-  td: { padding: "12px 16px", color: "#334155" },
-  badgeBlue: {
-    background: "#dbeafe",
-    color: "#1d4ed8",
-    padding: "2px 10px",
-    borderRadius: 20,
-    fontSize: 12,
-  },
-  badgePurple: {
-    background: "#ede9fe",
-    color: "#7c3aed",
-    padding: "2px 10px",
-    borderRadius: 20,
-    fontSize: 12,
-  },
   btnPrimary: {
     background: "#3b82f6",
     color: "#fff",
     border: "none",
-    padding: "10px 16px",
-    borderRadius: 10,
+    padding: "8px 14px",
+    borderRadius: 8,
     cursor: "pointer",
   },
   btnDanger: {
     background: "#ef4444",
     color: "#fff",
     border: "none",
-    padding: "6px 12px",
-    borderRadius: 8,
+    padding: "6px 10px",
+    borderRadius: 6,
     cursor: "pointer",
   },
   btnGray: {
     background: "#94a3b8",
     color: "#fff",
     border: "none",
-    padding: "10px 16px",
-    borderRadius: 10,
-    cursor: "pointer",
+    padding: "8px 12px",
+    borderRadius: 6,
   },
-  error: {
-    background: "#fef2f2",
-    color: "#dc3545",
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 15,
+  badgeBlue: {
+    background: "#dbeafe",
+    padding: "3px 10px",
+    borderRadius: 20,
+  },
+  badgePurple: {
+    background: "#ede9fe",
+    padding: "3px 10px",
+    borderRadius: 20,
   },
   modalOverlay: {
     position: "fixed",
     inset: 0,
     background: "rgba(0,0,0,0.5)",
     display: "flex",
-    alignItems: "center",
     justifyContent: "center",
-    zIndex: 1000,
+    alignItems: "center",
   },
   modalBox: {
     background: "#fff",
-    borderRadius: 15,
-    padding: 30,
-    width: 440,
-    maxHeight: "90vh",
-    overflowY: "auto",
-  },
-  modalTitle: { marginBottom: 15, color: "#1e3a8a" },
-  numberBadge: {
-    background: "#eff6ff",
-    padding: "10px 15px",
+    padding: 25,
     borderRadius: 10,
-    marginBottom: 20,
-    fontSize: 14,
+    width: 400,
   },
   modalFooter: {
     display: "flex",
     justifyContent: "flex-end",
     gap: 10,
-    marginTop: 20,
-  },
-  formGroup: { marginBottom: 15 },
-  label: {
-    display: "block",
-    marginBottom: 5,
-    fontWeight: 600,
-    color: "#475569",
+    marginTop: 10,
   },
   input: {
     width: "100%",
-    padding: "10px 12px",
-    borderRadius: 8,
-    border: "1px solid #cbd5e1",
-    boxSizing: "border-box",
+    marginBottom: 10,
+    padding: 8,
+    borderRadius: 6,
+    border: "1px solid #ccc",
+  },
+  error: {
+    background: "#fee2e2",
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 6,
   },
 };

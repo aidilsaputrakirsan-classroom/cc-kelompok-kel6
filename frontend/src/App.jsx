@@ -6,11 +6,28 @@ import {
   Navigate,
 } from "react-router-dom";
 import { authAPI } from "./services/api";
+
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import FinanceModule from "./components/FinanceModule";
 import LetterModule from "./components/LetterModule";
 import UserManagement from "./components/UserManagement";
+import Navigation from "./components/Navigation";
+
+/* 🔥 LAYOUT WRAPPER */
+function Layout({ user, onLogout, children }) {
+  return (
+    <div style={{ display: "flex" }}>
+      {/* SIDEBAR */}
+      <Navigation user={user} onLogout={onLogout} />
+
+      {/* CONTENT */}
+      <div style={{ marginLeft: 260, width: "100%" }}>
+        {children}
+      </div>
+    </div>
+  );
+}
 
 function App() {
   const [user, setUser] = useState(null);
@@ -62,16 +79,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route
-          path="/"
-          element={
-            user ? (
-              <Dashboard user={user} onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
+        {/* LOGIN */}
         <Route
           path="/login"
           element={
@@ -82,31 +90,57 @@ function App() {
             )
           }
         />
+
+        {/* DASHBOARD */}
+        <Route
+          path="/"
+          element={
+            user ? (
+              <Layout user={user} onLogout={handleLogout}>
+                <Dashboard user={user} />
+              </Layout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        {/* FINANCE */}
         <Route
           path="/finance"
           element={
             user ? (
-              <FinanceModule user={user} onLogout={handleLogout} />
+              <Layout user={user} onLogout={handleLogout}>
+                <FinanceModule user={user} />
+              </Layout>
             ) : (
               <Navigate to="/login" />
             )
           }
         />
+
+        {/* LETTER */}
         <Route
           path="/letter"
           element={
             user ? (
-              <LetterModule user={user} onLogout={handleLogout} />
+              <Layout user={user} onLogout={handleLogout}>
+                <LetterModule user={user} />
+              </Layout>
             ) : (
               <Navigate to="/login" />
             )
           }
         />
+
+        {/* USERS (KHUSUS KETUA) */}
         <Route
           path="/users"
           element={
             user?.role === "Ketua" ? (
-              <UserManagement user={user} onLogout={handleLogout} />
+              <Layout user={user} onLogout={handleLogout}>
+                <UserManagement user={user} />
+              </Layout>
             ) : (
               <Navigate to="/" />
             )

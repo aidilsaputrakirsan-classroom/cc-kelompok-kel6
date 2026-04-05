@@ -14,11 +14,13 @@ export default function Navigation({ user, onLogout }) {
     (user.role === "Bendahara" ||
       user.role === "Ketua" ||
       user.role === "Anggota");
+
   const canAccessLetters =
     user &&
     (user.role === "Sekretaris" ||
       user.role === "Ketua" ||
       user.role === "Anggota");
+
   const canAccessUsers = user && user.role === "Ketua";
 
   const isActive = (path) => location.pathname === path;
@@ -42,24 +44,25 @@ export default function Navigation({ user, onLogout }) {
           active={isActive("/")}
           onClick={() => navigate("/")}
         />
+
         {canAccessFinance && (
           <MenuItem
             label="Keuangan"
             icon={icons.wallet}
             active={isActive("/finance")}
             onClick={() => navigate("/finance")}
-            badge={user.role === "Bendahara" ? "✎" : null}
           />
         )}
+
         {canAccessLetters && (
           <MenuItem
             label="Surat"
             icon={icons.mail}
             active={isActive("/letter")}
             onClick={() => navigate("/letter")}
-            badge={user.role === "Sekretaris" ? "✎" : null}
           />
         )}
+
         {canAccessUsers && (
           <MenuItem
             label="Users"
@@ -70,17 +73,8 @@ export default function Navigation({ user, onLogout }) {
         )}
       </div>
 
-      {/* PROFILE + LOGOUT */}
+      {/* LOGOUT ONLY */}
       <div style={styles.bottom}>
-        <div style={styles.profileWrap}>
-          <div style={styles.avatar}>
-            {user?.username?.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <p style={styles.name}>{user?.username}</p>
-            <p style={styles.role}>{user?.role}</p>
-          </div>
-        </div>
         <button style={styles.logout} onClick={handleLogout}>
           {icons.logout} Logout
         </button>
@@ -89,15 +83,17 @@ export default function Navigation({ user, onLogout }) {
   );
 }
 
-function MenuItem({ label, icon, active, onClick, badge }) {
+function MenuItem({ label, icon, active, onClick }) {
   return (
     <div
       onClick={onClick}
-      style={{ ...styles.menuItem, ...(active && styles.activeItem) }}
+      style={{
+        ...styles.menuItem,
+        ...(active && styles.activeItem),
+      }}
     >
       {icon}
-      <span style={{ flex: 1 }}>{label}</span>
-      {badge && <span style={styles.badge}>{badge}</span>}
+      <span>{label}</span>
     </div>
   );
 }
@@ -118,14 +114,9 @@ const icons = {
       <path d="M2 4h20v16H2V4zm10 7l10-7H2l10 7z" />
     </svg>
   ),
-  file: (
-    <svg width="18" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M6 2h9l5 5v15H6V2zm8 1.5V9h5.5" />
-    </svg>
-  ),
   users: (
     <svg width="18" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+      <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z" />
     </svg>
   ),
   logout: (
@@ -141,19 +132,20 @@ const styles = {
     position: "fixed",
     width: 260,
     height: "100vh",
-    background: "#1e3a8a",
+    background: "linear-gradient(180deg, #1e3a8a, #1e40af)",
     color: "#fff",
     padding: 20,
     display: "flex",
     flexDirection: "column",
-    zIndex: 100,
   },
+
   logoWrap: {
     display: "flex",
     gap: 10,
     marginBottom: 30,
     alignItems: "center",
   },
+
   logoIcon: {
     width: 40,
     height: 40,
@@ -164,12 +156,13 @@ const styles = {
     justifyContent: "center",
     borderRadius: 10,
     fontWeight: "bold",
-    fontSize: 18,
-    flexShrink: 0,
   },
-  logoText: { margin: 0, fontSize: 18 },
-  logoSub: { margin: 0, fontSize: 10, opacity: 0.7 },
+
+  logoText: { margin: 0 },
+  logoSub: { margin: 0, fontSize: 11, opacity: 0.7 },
+
   menu: { flex: 1 },
+
   menuItem: {
     display: "flex",
     alignItems: "center",
@@ -179,42 +172,20 @@ const styles = {
     cursor: "pointer",
     marginBottom: 6,
     color: "#c7d2fe",
-    transition: "all 0.2s",
+    transition: "0.2s",
   },
-  activeItem: { background: "#3b82f6", color: "#fff" },
-  badge: {
-    background: "#fff",
-    color: "#1e3a8a",
-    fontSize: 11,
-    padding: "1px 6px",
-    borderRadius: 20,
-    fontWeight: "bold",
-  },
-  bottom: { borderTop: "1px solid #2d4eaa", paddingTop: 15 },
-  profileWrap: {
-    display: "flex",
-    gap: 10,
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  avatar: {
-    width: 35,
-    height: 35,
-    borderRadius: "50%",
+
+  activeItem: {
     background: "#3b82f6",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "bold",
-    flexShrink: 0,
+    color: "#fff",
   },
-  name: { margin: 0, fontWeight: "bold", fontSize: 14 },
-  role: { margin: 0, fontSize: 11, opacity: 0.7 },
+
+  bottom: {
+    borderTop: "1px solid rgba(255,255,255,0.2)",
+    paddingTop: 15,
+  },
+
   logout: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
     width: "100%",
     padding: 10,
     borderRadius: 10,
