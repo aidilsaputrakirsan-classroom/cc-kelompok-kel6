@@ -27,8 +27,7 @@ Aplikasi ini ditujukan bagi seluruh pengurus HMSI untuk mendukung transparansi, 
 
 ## 🏗️ Architecture
 
-
-### High-Level Overview
+## High-Level Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -113,6 +112,23 @@ PostgreSQL Databases (3 separate instances)
    Finance Service:
    - Check user role
    - Return transactions
+``` 
+
+### Database Isolation
+
+Each service has **independent database** - no direct cross-service DB queries.
+
+```
+Auth Service ──(SQLAlchemy)──▶ PostgreSQL:auth_db
+                              • users table
+
+Finance Service ─(SQLAlchemy)─▶ PostgreSQL:finance_db
+                               • categories
+                               • transactions
+
+Letter Service ──(SQLAlchemy)──▶ PostgreSQL:letter_db
+                                • letters
+                                • letter_counters
 ```
 
 *(Diagram ini akan berkembang setiap minggu)*
