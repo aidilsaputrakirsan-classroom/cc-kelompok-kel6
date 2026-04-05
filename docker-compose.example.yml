@@ -67,6 +67,7 @@ services:
       - cloudnet
     expose:
       - "8000"
+    entrypoint: sh -c "python seed.py && uvicorn main:app --host 0.0.0.0 --port 8000"
 
   finance-service:
     build: ./services/finance-service
@@ -82,6 +83,7 @@ services:
       - cloudnet
     expose:
       - "8000"
+    entrypoint: sh -c "python seed.py && uvicorn main:app --host 0.0.0.0 --port 8000"
 
   letter-service:
     build: ./services/letter-service
@@ -97,6 +99,7 @@ services:
       - cloudnet
     expose:
       - "8000"
+    entrypoint: sh -c "python seed.py && uvicorn main:app --host 0.0.0.0 --port 8000"
 
   # ==================== FRONTEND ====================
   frontend:

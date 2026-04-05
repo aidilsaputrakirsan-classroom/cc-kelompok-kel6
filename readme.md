@@ -27,18 +27,18 @@ Aplikasi ini ditujukan bagi seluruh pengurus HMSI untuk mendukung transparansi, 
 
 ## 🏗️ Architecture
 
-## High-Level Overview
+### High-Level Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     BROWSER / CLIENT                         │
-│                  (Vite React Frontend)                       │
+│                     BROWSER / CLIENT                        │
+│                  (Vite React Frontend)                      │
 └────────────────────────┬────────────────────────────────────┘
                          │ HTTP Requests
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                   NGINX GATEWAY (Port 80)                    │
-│              Reverse Proxy & Load Balancing                  │
+│                   NGINX GATEWAY (Port 80)                   │
+│              Reverse Proxy & Load Balancing                 │
 ├──────────┬──────────┬──────────┬────────────────────────────┤
 │          │          │          │                            │
 ▼          ▼          ▼          ▼                            ▼
