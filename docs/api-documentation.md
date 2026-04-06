@@ -556,3 +556,15 @@ Langkah-langkah penggunaannya:
 5. Klik tombol **Authorize** di pojok kanan atas, ketik `Bearer` diikuti spasi dan token yang sudah disalin
 6. Klik **Authorize** lalu **Close**
 7. Seluruh endpoint yang memerlukan autentikasi sudah bisa digunakan
+
+### Default Test Accounts
+
+The system automatically seeds 5 test users with different roles:
+
+```
+Username: ketua        | Password: password123 | Role: Ketua
+Username: bendahara    | Password: password123 | Role: Bendahara
+Username: sekretaris   | Password: password123 | Role: Sekretaris
+Username: anggota      | Password: password123 | Role: Anggota
+Username: anggota2     | Password: password123 | Role: Anggota
+```
